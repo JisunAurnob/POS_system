@@ -1,0 +1,45 @@
+.nav-link {
+    font-family: 'Patrick Hand SC';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.20rem;
+    line-height: 99.02%;
+    color: #000000;
+}
+
+.nav-link:hover {
+    color: #9586DE;
+}
+
+.sidebar {
+    background-color: var(--pos-secondary-color);
+    border-right: 1px solid #cac5c5;
+    height: 100vh;
+    overflow: auto;
+    text-align: center;
+    width: 8rem;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+.body_container {
+    margin-left: 8rem;
+    font-size: 18px;
+    
+    /* overflow-y: scroll;
+    height: 100vh; */
+}
+.sidebar_button {
+    border-radius: 20px;
+    box-sizing: content-box;
+    color: var(--pos-font-color);
+    display: grid;
+    padding: 14% 0;
+    text-decoration: none;
+    margin: 0.75rem;
+}
+.sidebar_button.active, .sidebar_button:hover {
+    background-image: linear-gradient(#09b3d4 0,#77e2f8 100%);
+    box-shadow: 0 0 3px 0 rgba(0,0,0,.15);
+    color: black;
+}

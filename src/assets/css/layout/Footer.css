@@ -1,0 +1,62 @@
+.footer {
+    font-family: 'Patrick Hand SC';
+    background-color: #9687df;
+    background-image:
+        linear-gradient(to right,
+            #6969b0, #9687df, #6969b0);
+    color: white;
+}
+
+.rocket-right {
+    position: relative;
+    bottom: 35%;
+}
+
+.rocket-left {
+    position: relative;
+    bottom: -8%;
+    width: 80%;
+}
+
+.footer li {
+    color: white;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 1.3rem;
+    line-height: 24px;
+}
+
+.news-letter {
+    position: relative;
+    bottom: -35%;
+    right: 35%;
+    background: #dddaf2;
+    border: 1px solid #FFFFFF;
+    border-radius: 6px;
+}
+
+.news-letter input{
+    background-color: #dddaf2;
+    /* color: white !important; */
+}
+
+.news-letter button{
+    color: white;
+    background: #9586DE;
+    border-radius: 8px;
+}
+.news-letter button:hover{
+    background: #826ee4;
+}
+
+.footer-logo-copyright{
+    padding-top: 1rem;
+    position: relative;
+    /* bottom: -8%; */
+    right: 5%;
+}
+
+.social-icons{
+    margin-top: 8rem;
+    margin-bottom: 1rem;
+}
