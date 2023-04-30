@@ -21,6 +21,10 @@
 {
 	background-color: #f8faf9;
 }
+.pos_container{
+    height: 100vh;
+    overflow-y: hidden;
+}
 .pgb_btn_outline{
     color: black;
     border-color: #594e8d;
@@ -165,12 +169,18 @@ width: 100%;
 .cart_section h2{
     border-top: 1px solid rgb(221, 221, 221);
     border-bottom: 1px solid rgb(221, 221, 221);
-    margin-left: -6%;
+    margin-left: -16px;
 }
 
-.cart_totals{
+.cart_totals {
+    height: 21.5rem;
+    z-index: 10;
+    background-color: white;
     position: fixed;
     bottom: 0;
+}
+.cart_totals h6, .cart_totals p{
+    margin-bottom: 0.3rem;
 }
 .discount_card{
     background-color: rgb(241, 238, 238);
@@ -201,11 +211,11 @@ width: 100%;
 }
 .product_list{
     margin: 0.6rem 0rem 0rem 0rem;
-    height: 80vh;
+    height: 63vh;
     overflow-y: scroll;
 }
 .cart_items{
-    height: 40vh;
+    height: 60vh;
     overflow-x: hidden;
     overflow-y: scroll;
 }

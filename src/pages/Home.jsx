@@ -40,7 +40,7 @@ const Home = () => {
     theme: "colored",
     // progressClassName: "fancy-progress-bar",
   });
-  const infoNotify = () => toast.info('Product is out of stock', {
+  const infoNotify = () => toast.info('Product removed from cart', {
     position: "top-right",
     autoClose: 3000,
     hideProgressBar: false,
@@ -271,7 +271,7 @@ const Home = () => {
 
               </div>
               <div className="cart_totals">
-                <hr style={{ marginLeft: '-6%' }} />
+                <hr style={{ marginTop: '0', marginLeft: '-14px' }} />
                 <Row>
                   <Col md={8}>
                     <h6>Subtotal:</h6>

@@ -7,7 +7,7 @@ import { ToastContainer } from 'react-toastify';
 const Layout = ({ children }) => {
 
     return (
-        <Container fluid className=''>
+        <Container fluid className='pos_container'>
 
             <ToastContainer />
             <Row className='justify-content-center'>
