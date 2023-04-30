@@ -38,7 +38,7 @@
 
 .products_tab{
     background-color: #f8faf9;
-    height: 100vh;
+    /* height: 100vh; */
 }
 
 .category_div{
@@ -124,7 +124,8 @@
     /* height: 9rem; */
     text-align: center;
     border-radius: 6px;
-    margin: 0.6rem;
+    /* margin: 0.6rem; */
+    margin: 0rem 0rem 1.3rem 0rem;
 }
 .pos_product_card:hover{
     opacity: 90%;
@@ -199,6 +200,12 @@ width: 100%;
     font-size: 1rem;
 }
 .product_list{
+    margin: 0.6rem 0rem 0rem 0rem;
     height: 80vh;
+    overflow-y: scroll;
+}
+.cart_items{
+    height: 40vh;
+    overflow-x: hidden;
     overflow-y: scroll;
 }
