@@ -51,21 +51,34 @@ const Home = () => {
     theme: "colored",
     // progressClassName: "fancy-progress-bar",
   });
-  const { addItem, totalUniqueItems, items, updateItemQuantity, removeItem } = useCart();
+  const { addItem, totalUniqueItems, cartTotal, items, updateItemQuantity, removeItem } = useCart();
   const [searchProduct, setSearchProduct] = useState();
   const [categories, setCategories] = useState();
   const [products, setProducts] = useState();
+  const [subtotal, setSubtotal] = useState(0.00);
+  const [discount, setDiscount] = useState(0.00);
+  const [couponAmount, setCouponAmount] = useState(0.00);
+  const [tax, setTax] = useState(0.00);
+  const [grandTotal, setGrandTotal] = useState(subtotal-discount-couponAmount+tax);
   useEffect(() => {
-    axios.get("get-categories")
-      .then(resp => {
-        setCategories(resp.data.categories[0]);
-      });
-    axios.get("get-products?limit=50")
-      .then(resp => {
-        setProducts(resp.data.data.data);
-      });
+    if(!categories){
+      axios.get("get-categories")
+        .then(resp => {
+          setCategories(resp.data.categories[0]);
+        });
+    }
+    if(!products){
+      axios.get("get-products?limit=50")
+        .then(resp => {
+          setProducts(resp.data.data.data);
+        });
+    }
     console.log('render check');
   }, []);
+  useEffect(() => {
+    setSubtotal(cartTotal);
+    setGrandTotal(subtotal-discount-couponAmount+tax);
+  }, [cartTotal,discount,couponAmount,tax,subtotal,grandTotal]);
   // console.log(searchProduct);
   return (
     <div>
@@ -277,7 +290,7 @@ const Home = () => {
                     <h6>Subtotal:</h6>
                   </Col>
                   <Col md={4}>
-                    <p className="text-end pe-3">0.00৳</p>
+                    <p className="text-end pe-3">{subtotal}৳</p>
                   </Col>
                   <Col md={8}>
                     <h6>Tax:</h6>
@@ -298,13 +311,37 @@ const Home = () => {
                     <p className="text-end pe-3">0.00৳</p>
                   </Col>
                   <Col md={6}>
-                    <button className="btn discount_card">
+                    <button className="btn discount_card" onClick={() => {
+                    Swal.fire({
+                      title: 'Enter/Scan Bar Code',
+                      input: 'text',
+                      inputPlaceholder: 'Enter/Scan Bar Code',
+                      confirmButtonColor: '#09b3d4',
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        setSearchProduct(result.value);
+                      }
+                    })
+                  }}>
                       <img src={tag_icon} alt="coupon" width='30' /><br />
                       Coupon
                     </button>
                   </Col>
                   <Col md={6}>
-                    <button className="btn discount_card">
+                    <button className="btn discount_card" onClick={() => {
+                    Swal.fire({
+                      title: 'Apply Discount',
+                      html: `<b>Select discount type</b> <br>
+                             `,
+                      input: 'text',
+                      inputPlaceholder: 'Enter Discount Amount',
+                      confirmButtonColor: '#09b3d4',
+                    }).then((result) => {
+                      if (result.isConfirmed) {
+                        setSearchProduct(result.value);
+                      }
+                    })
+                  }}>
                       <img src={discount_icon} alt="coupon" width='30' /><br />
                       Discount
                     </button>
@@ -319,9 +356,9 @@ const Home = () => {
                 <button className="btn cart_order_btn">
                   <p className="text-start ps-4 pt-2">Proceed to Pay
                     <br />
-                    <i>5 Items</i>
+                    <i>{totalUniqueItems} Items</i>
                   </p>
-                  <p>1,432.17৳&nbsp;
+                  <p>{grandTotal}৳&nbsp;
                     <span role="img" aria-label="double-right" className="anticon anticon-double-right">
                       <svg viewBox="64 64 896 896" focusable="false" data-icon="double-right" width="1em" height="1em" fill="currentColor" aria-hidden="true">
                         <path d="M533.2 492.3L277.9 166.1c-3-3.9-7.7-6.1-12.6-6.1H188c-6.7 0-10.4 7.7-6.3 12.9L447.1 512 181.7 851.1A7.98 7.98 0 00188 864h77.3c4.9 0 9.6-2.3 12.6-6.1l255.3-326.1c9.1-11.7 9.1-27.9 0-39.5zm304 0L581.9 166.1c-3-3.9-7.7-6.1-12.6-6.1H492c-6.7 0-10.4 7.7-6.3 12.9L751.1 512 485.7 851.1A7.98 7.98 0 00492 864h77.3c4.9 0 9.6-2.3 12.6-6.1l255.3-326.1c9.1-11.7 9.1-27.9 0-39.5z"></path></svg>

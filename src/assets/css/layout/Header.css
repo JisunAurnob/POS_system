@@ -17,13 +17,13 @@
     height: 100vh;
     overflow: auto;
     text-align: center;
-    width: 8rem;
+    width: 7rem;
     position: absolute;
     left: 0;
     top: 0;
 }
 .body_container {
-    margin-left: 8rem;
+    margin-left: 7rem;
     font-size: 18px;
     
     /* overflow-y: scroll;
