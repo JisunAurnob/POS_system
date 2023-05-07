@@ -6,7 +6,7 @@ import reportWebVitals from './reportWebVitals';
 import axios from 'axios';
 import { CartProvider } from 'react-use-cart';
 
-axios.defaults.baseURL = "https://ultimateasiteapi.com/api/";
+axios.defaults.baseURL = "http://127.0.0.1:8000/api/";
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
