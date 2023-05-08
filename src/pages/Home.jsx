@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Layout from "../layouts/Layout";
-import { Col, Row } from "react-bootstrap";
+import { Col, Modal, Row } from "react-bootstrap";
 import '../assets/css/Home.css'
 // import { Link } from "react-router-dom";
 import all_cate from '../assets/images/home/all_cate.png';
@@ -16,6 +16,7 @@ import Swal from 'sweetalert2';
 import { useCart } from "react-use-cart";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import SelectSearch from "react-select-search";
 
 const Home = () => {
   const successNotify = (v) => toast.success(v, {
@@ -67,6 +68,52 @@ const Home = () => {
   const [customers, setCustomers] = useState();
   const [selectedCustomer, setCustomer] = useState();
   const [selectedCustomerAddressesId, setCustomerAddressId] = useState();
+  const [cateID, setCateID] = useState();
+  const [query, setQuery] = useState(null);
+  const [addAddressModal, setAddAddressModal] = useState();
+  useEffect(() => {
+    if (searchProduct && cateID) {
+      setQuery("?product_name=" + searchProduct + "&category_id=" + cateID);
+    }
+    else if(searchProduct){
+      setQuery("?product_name=" + searchProduct);
+    }
+    else if(cateID){
+      setQuery("?category_id=" + cateID);
+    }
+    else{
+      setQuery(null);
+    }
+    // console.log(query);
+  }, [cateID, searchProduct]);
+
+useEffect(() => {
+  if (searchProduct && cateID && query) {
+    axios.get("pos/products" + query)
+      .then(resp => {
+        setProducts(resp.data.data);
+      });
+  }
+  else if (searchProduct && query) {
+    axios.get("pos/products" + query)
+      .then(resp => {
+        setProducts(resp.data.data);
+      });
+  }
+  else if (cateID && query) {
+    axios.get("pos/products" + query)
+      .then(resp => {
+        setProducts(resp.data.data.data);
+      });
+  }
+  else{
+    axios.get("pos/products")
+      .then(resp => {
+        setProducts(resp.data.data.data);
+      });
+  }
+  }, [query]);
+
   useEffect(() => {
     if (!categories) {
       axios.get("get-categories")
@@ -74,14 +121,9 @@ const Home = () => {
           setCategories(resp.data.categories[0]);
         });
     }
-    if (!products) {
-      axios.get("get-products?limit=50")
-        .then(resp => {
-          setProducts(resp.data.data.data);
-        });
-    }
-    console.log('render check');
+    // console.log('render check');
   }, []);
+
   useEffect(() => {
     setSubtotal(cartTotal);
     setGrandTotal(subtotal - discount - couponAmount + tax);
@@ -97,7 +139,7 @@ const Home = () => {
       }
   }, [searchCustomer]);
 
-  let radioHtml = '';
+  const [addressHtml, setAddressHtml] = useState(null);
   
   const customerAddress = (customer_id) => {
     setSelectedCustomerAddress(null);
@@ -110,28 +152,126 @@ const Home = () => {
     .catch((err) => {
       console.log(err);
     });
+    console.log('customerAddress load function hit');
 }
   useEffect(() => {
+  let radioHtml = '<b class="mb-2 mt-2 col-12">Select Address</b> <br>';
   if(selectedCustomerAddresses){
     selectedCustomerAddresses.forEach(function (item, key) {
-      radioHtml+=`<div class="form-check form-check-inline col-5" style="margin:1rem">
+      radioHtml+=`<div class="form-check form-check-inline col-5 pe-0" style="margin:1rem">
       <input class="form-check-input discount_type" type="radio" name="address_id" id="`+item.id+`" value="`+item.id+`" required>
       <label class="form-check-label" for="`+item.id+`">
       <address className='row address_div'>
-      <p className="col-6" style="margin-bottom: 0">`+item.address+`</p>
-      <p className="col-6" style="margin-bottom: 0">`+item.phone+`</p>
-      <p className="col-6" style="margin-bottom: 0">`+item.shipping_state.name+`</p>
-      <p className="col-6" style="margin-bottom: 0">`+item.zip+`</p>
+      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">`+item.address+`</p>
+      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">
+      <i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+      <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
+    </svg></i> `+item.name+`</p>
+      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;"><i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-telephone" viewBox="0 0 16 16">
+      <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
+    </svg></i> `+item.phone+`</p>
+      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">`+item.shipping_state.name+`</p>
+      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">Zip: `+item.zip+`</p>
       </address>
       </label>
     </div>`;
     });
   }
   else{
-    radioHtml=`<h5>No Address Found</h5>`;
+    radioHtml=`<h5 class="text-warning">No Address Found</h5>`;
   }
+  setAddressHtml(radioHtml)
+  // console.log('changes in the radio html' + radioHtml);
 }, [selectedCustomerAddresses]);
   console.log(selectedCustomerAddresses);
+  const [errorList, setError] = useState();
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [contact, setContact] = useState("");
+  const [city, setCity] = useState("inside_dhaka");
+  const [area, setArea] = useState("");
+  const [areaID, setAreaId] = useState("");
+  const [zip, setZip] = useState("");
+  const [defaultValue, setDefault] = useState(false);
+  const [address, setAddress] = useState("");
+  const [shippingZones, setShippingZones] = useState([]);
+  useEffect(() => {
+    // console.log(city);
+    if (city == 'inside_dhaka') {
+      axios.get("ec/area-by-district/dhaka")
+        .then(resp => {
+          // console.log(resp.data.data);
+          setShippingZones(resp.data.data.data);
+        }).catch(err => {
+          console.log(err);
+        });
+    }
+    else if (city == 'outside_dhaka') {
+      axios.get("ec/get-cities")
+        .then(resp => {
+          // console.log(resp.data.data);
+          setShippingZones(resp.data.data);
+        }).catch(err => {
+          console.log(err);
+        });
+    }
+  }, [city]);
+  const handleSubmit = (event) => {
+    
+    var obj = {
+      name: username,
+      email: email,
+      phone: contact,
+      address: address,
+      city: city,
+      zip: zip,
+      area: area,
+      area_id: areaID,
+      shipping_id: 0,
+      is_default: defaultValue
+    };
+    if (city == 'inside_dhaka') {
+      obj.shipping_id = 14;
+    }
+    else if (city == 'outside_dhaka') {
+      obj.shipping_id = 15;
+    }
+    // console.log(props.customer_id);
+    // console.log(obj);
+    axios
+      .post("pos/add-customer-address/" + selectedCustomer.id, obj)
+      .then(function (resp) {
+        
+        // console.log(resp.data);
+        var data = resp.data;
+        // console.log(data);
+        if (data.success == false) {
+
+          setError(data.message);
+        }
+        else if (data.message) {
+          Swal.fire({
+            customClass: {
+              icon: 'mt-4'
+            },
+            position: 'center',
+            icon: 'success',
+            title: data.message,
+            showConfirmButton: true,
+          });
+          // navigate("/customer/address");
+          // window.location.reload(false);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+        setError(err.response.data.errors)
+      });
+
+    // console.log('errorlist');
+    console.log(errorList);
+    event.preventDefault();
+  };
   return (
     <div>
       <Layout>
@@ -140,7 +280,9 @@ const Home = () => {
             <div className="products_tab">
               <h2 className="p-2">Categories</h2>
               <div className="category_div">
-                <button className="category_card active">
+                <button className={cateID ? "category_card" : "category_card active"} onClick={()=>{
+                          setCateID(null);
+                        }}>
                   <span role="img" aria-label="database" className="catIcon">
                     <img className="catIcon" src={all_cate} alt='All'
                       width="40" height="40" />
@@ -151,7 +293,9 @@ const Home = () => {
                   (
                     categories.categories.map((category, index) => {
                       return (
-                        <button key={index} className="category_card">
+                        <button key={index} className={cateID===category.id ? "category_card active" : "category_card"} onClick={()=>{
+                          setCateID(category.id);
+                        }}>
                           <span role="img" aria-label="database" className="catIcon">
                             <img className="catIcon" src={axios.defaults.baseURL.slice(0, -4) + "frontend/images/category_images/" + category.category_image} alt={category.category_name}
                               width="40" height="40" />
@@ -196,20 +340,6 @@ const Home = () => {
                 </Col>
               </Row>
               <Row className="product_list">
-                {/* <Col md={6} lg={3}>
-                  <div className="pos_product_card">
-                    <Row>
-                      <Col xs={6} className="pe-0">
-                        <img className="img-fluid" src={ghee_image} alt="Product name" />
-                      </Col>
-                      <Col xs={6} className="pos_product_details">
-                        <h2 className="mb-0" title="Grass-fed Ghee 500 ML">Grass-fed Ghee 500 ML</h2>
-                        <p className="mb-0">৳800</p>
-                        <span className="in_stock">In Stock</span>
-                      </Col>
-                    </Row>
-                  </div>
-                </Col> */}
                 {products &&
                   products.map((product, index) => {
                     return (
@@ -266,22 +396,33 @@ const Home = () => {
                   <div className="col-2">
                   <button className="btn customer_add_btn" title="Select Address"
                   onClick={()=>{
+                    var button_text = '';
+                    if(!selectedCustomerAddresses){
+                      button_text = 'Add Address';
+                    }
+                    else{
+                      button_text = 'Select Address';
+                    }
                     Swal.fire({
                       title: 'Customer Addresses',
                       html: `<div class="row" style="width: 100%">
                       <div class="col-12 row">
-                      <b class="mb-2 mt-2 col-12">Select Address</b> <br>
-                      `+radioHtml+`
+                      `+addressHtml+`
                       </div>
                       </div>
                               `,
                       confirmButtonColor: '#09b3d4',
-                      confirmButtonText: "Select Address",
+                      confirmButtonText: button_text,
                     }).then((result) => {
                       if (result.isConfirmed) {
                         setCustomerAddressId(Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value);
                       }
                     })
+
+                    if(!selectedCustomerAddresses){
+                      
+                    setAddAddressModal(true);
+                    }
                   }}>
                       <i>
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-ui-radios" viewBox="0 0 16 16">
@@ -289,6 +430,143 @@ const Home = () => {
                     </svg>
                       </i>
                     </button>
+                    <Modal
+                        show={addAddressModal}
+                        size="md"
+                        aria-labelledby="contained-modal-title-vcenter"
+                        centered
+                      >
+                        <Modal.Header closeButton onClick={()=>setAddAddressModal(false)}>
+                          <Modal.Title id="contained-modal-title-vcenter">
+                              Add Customer Address
+                          </Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                       <div className="ps-4 pe-4">
+                       <form onSubmit={(e) => { handleSubmit(e); }}>
+                  <div className="form-group mb-2">
+                    <label htmlFor="name" className="required">
+                      Full Name:
+                    </label>{" "}
+                    <input
+                      id="name"
+                      type="text"
+                      name="name"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      placeholder="Enter your full name"
+                      className="form-control square"
+                    />
+                    {errorList && (<span className='text-danger'>{errorList.name}</span>)}
+                  </div>{" "}
+                  <div className="form-group mb-2">
+                    <label htmlFor="email">Email:</label>{" "}
+                    <input id="email" type="email" name="email" value={email}
+                      onChange={(e) => setEmail(e.target.value)} placeholder="your-email@domain.com" className="form-control square" />
+                    {errorList && (<span className='text-danger'>{errorList.email}</span>)}
+                  </div>{" "}
+                  <div className="form-group mb-2">
+                    <label htmlFor="phone" className="required">
+                      Phone:
+                    </label>{" "}
+                    <input id="phone" type="text" name="phone" value={contact} onChange={(e) => setContact(e.target.value)} className="form-control square" />
+                    {errorList && (<span className='text-danger'>{errorList.phone}</span>)}
+                  </div>{" "}
+                  <div className="form-group mb-2">
+                    <label htmlFor="city" className="required">
+                      City:
+                    </label>{" "}
+                    <select style={{ height: '47px' }} className="form-control address-control-item address-control-item-required"
+                      id="city"
+                      name="city"
+                      value={city}
+                      required
+                      onChange={(e) => { setCity(e.target.value); }}
+                    >
+                      {/* <option>Your City</option> */}
+                      <option value={'inside_dhaka'}>Inside Dhaka</option>
+                      <option value={'outside_dhaka'}>Outside Dhaka</option>
+                    </select>
+                    {errorList && (<span className='text-danger'>{errorList.city}</span>)}
+                  </div>{" "}
+                  <div className="form-group mb-2">
+                    <label htmlFor="area" className="required">
+                      Area:
+                    </label>{" "}
+                    {city === 'inside_dhaka' && (
+                      // <div className="form-group">
+                      // <SelectSearch options={DhakaShippingZoneData} value={area} search={true} name="area" placeholder="Select Area" onChange={(selectedValue,selectedOption) => {setArea(selectedOption.name);console.log(selectedOption);}} />
+                      // </div>
+                      shippingZones && (
+                        <div className="form-group mb-2">
+                          <select style={{ height: '47px' }} className="form-control address-control-item address-control-item-required"
+                            name="area"
+                            required={area === "" ? true : false}
+                            value={area}
+                            onChange={(e) => setArea(e.target.value)}
+                          >
+                            <option value={null}>Select Area</option>
+                            {shippingZones &&
+                              (shippingZones.map((srvzn, index) => {
+                                return <option key={index} value={srvzn.name}>{srvzn.name}</option>;
+                              }))}
+                          </select>
+                          {errorList && (
+                            <span className="text-danger">
+                              {errorList['shipping_details.area'] && errorList['shipping_details.area'][0]}
+                            </span>
+                          )}
+                        </div>
+                      )
+                    )}
+                    {city === 'outside_dhaka' && (
+                      shippingZones && (
+                        <div className="form-group">
+                          <SelectSearch options={shippingZones} value={area} search={true} name="area" placeholder="Select Area" onChange={(selectedValue) => { setArea(selectedValue); }} />
+                        </div>
+                      )
+                    )}
+                  </div>{" "}
+                  <div className="form-group mb-2">
+                    <label htmlFor="zip" className="">
+                      Zip:
+                    </label>{" "}
+                    <input id="zip" type="text" name="zip" value={zip} onChange={(e) => setZip(e.target.value)} placeholder="Enter your city" className="form-control square" />
+                  </div>{" "}
+                  <div className="form-group mb-2">
+                    <label htmlFor="address" className="required">
+                      Address:
+                    </label>{" "}
+                    <input
+                      id="address"
+                      type="text"
+                      name="address"
+                      value={address}
+                      onChange={(e) => setAddress(e.target.value)}
+                      required="required"
+                      placeholder="Enter your address"
+                      className="form-control square"
+                    />
+                    {errorList && (<span className='text-danger'>{errorList.address}</span>)}
+                  </div>{" "}
+                  <div className="form-group mb-2">
+                    <div className="custome-checkbox">
+                      <input type="checkbox" name="is_default" value={1} id="is_default" onClick={(e) => setDefault(!defaultValue)} className="form-check-input" />{" "}
+                      <label htmlFor="is_default" className="form-check-label">
+                        <span>Use this address as default.</span>
+                      </label>
+                    </div>
+                  </div>{" "}
+                  <div className="col-md-12">
+                    <button type="submit" className="btn customer_add_btn">
+                      Save address
+                    </button>&nbsp;
+                    <button type="reset" className="btn btn-light" onClick={()=>setAddAddressModal(false)}>Cancel</button>
+                  </div>
+                </form>
+                       </div>
+                        </Modal.Body>
+                      </Modal>
                   </div>
                   <div className="col-1">
                   <button data-title="Remove" className="btn" onClick={()=>{
@@ -337,7 +615,7 @@ const Home = () => {
                     
                   </div>
                   <div className="col-4">
-                    <button className="col-5 btn customer_add_btn" title="Select Address">
+                    <button className="col-5 btn customer_add_btn" title="Add Customer">
                       <i>
                         <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-person-add" viewBox="0 0 16 16">
                           <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0Zm-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
@@ -353,15 +631,17 @@ const Home = () => {
               <div className="cart_items">
                 {items.map((item, key) => {
                   return (
-                    <div key={key} className="row cart_item_card me-2">
-                      <div className="col-1" style={{ cursor: 'pointer' }} onClick={() => {
-                        if (itemExpend == item.id) {
-                          setItemExpend(null);
-                        }
-                        else {
-                          setItemExpend(item.id);
-                        }
-                      }}>
+                    <>
+                    <div key={key} className="cart_item_card me-2" style={{ cursor: 'pointer' }}>
+                      <div className="row me-2" onClick={() => {
+                      if (itemExpend == item.id) {
+                        setItemExpend(null);
+                      }
+                      else {
+                        setItemExpend(item.id);
+                      }
+                    }}>
+                      <div className="col-1">
                         {itemExpend === item.id ? (
 
                           <i style={{ color: '#09b3d4' }}>
@@ -380,7 +660,7 @@ const Home = () => {
                         <img className="img-fluid" src={item.image} width='100' alt="Foster Farms Takeout Crispy classNameic" />
                       </div>
                       <div className="col-5" style={{ paddingLeft: '1rem' }} data-title="Name">
-                        <h6 className="mb-5">
+                        <h6 className="m-0 mt-2" title={item.name}>
                           {item.name}
                           <h5 className="text-body"> ৳{item.price} x {item.quantity} </h5>{" "}
                         </h6>
@@ -388,7 +668,7 @@ const Home = () => {
                       </div>
                       <div data-title="Price" className="col-2">
 
-                        <h5 className="text-body text-center"> ৳{(item.price * item.quantity)} </h5>{" "}
+                        <h5 className="text-body text-center mt-2"> ৳{(item.price * item.quantity)} </h5>{" "}
                         {/* <small>
                                 <del>$90.00</del>
                               </small> */}
@@ -407,6 +687,9 @@ const Home = () => {
                           </svg></i>
                         </button>
                       </div>
+                      </div>
+                      <div className="row">
+                        
                       {itemExpend === item.id && (
                         <>
                           <div className="col-5">
@@ -443,7 +726,9 @@ const Home = () => {
                           </div>
                         </>
                       )}
+                      </div>
                     </div>
+                    </>
                   );
                 })}
 
@@ -470,7 +755,7 @@ const Home = () => {
                     <p className="text-end pe-3">
                       {discount > 0 && (
 
-                        <button data-title="Remove" className="btn " onClick={() => {
+                        <button data-title="Remove" className="btn pt-0" onClick={() => {
                           infoNotify('Discount removed');
                           setDiscount(0.00);
                         }
@@ -481,7 +766,7 @@ const Home = () => {
                           </svg></i>
                         </button>
                       )}
-                      -{discount > 0 ? Number(discount.toFixed(2)) : '0.00'}৳</p>
+                      -{discount > 0 ? Number(discount) : '0.00'}৳</p>
                   </Col>
                   <Col md={8}>
                     <h6>Applied Coupon(s):</h6>
@@ -490,8 +775,9 @@ const Home = () => {
                     <p className="text-end pe-3">
                       {couponAmount > 0 && (
 
-                        <button data-title="Remove" className="btn " onClick={() => {
-                          setDiscount(0.00);
+                        <button data-title="Remove" className="btn pt-0" onClick={() => {
+                          infoNotify('Coupon removed');
+                          setCouponAmount(0.00);
                         }
                         }>
                           <i><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-trash" viewBox="0 0 16 16">
@@ -500,7 +786,7 @@ const Home = () => {
                           </svg></i>
                         </button>
                       )}
-                      -{couponAmount > 0 ? Number(couponAmount.toFixed(2)) : '0.00'}৳</p>
+                      -{couponAmount && couponAmount > 0 ? Number(couponAmount) : '0.00'}৳</p>
                   </Col>
                   <Col md={6}>
                     <button className="btn discount_card" onClick={() => {
@@ -509,9 +795,23 @@ const Home = () => {
                         input: 'text',
                         inputPlaceholder: 'Your Coupon Code',
                         confirmButtonColor: '#09b3d4',
+                        confirmButtonText: 'Apply',
                       }).then((result) => {
                         if (result.isConfirmed) {
-                          setSearchProduct(result.value);
+                          axios.post("pos/coupon-apply/",
+                            { coupon: result.value, sub_total: subtotal})
+                            .then(function (resp) {
+                              if (resp.data.success) {
+                                console.log(resp.data);
+                                successNotify('Coupon Applied Successfully');
+                                setCouponAmount(resp.data.data.coupon_discount);
+                              }else{
+                                errorNotify(resp.data.message);
+                              }
+                            })
+                            .catch((err) => {
+                              console.log(err);
+                            });
                         }
                       })
                     }}>
@@ -537,9 +837,10 @@ const Home = () => {
                         inputPlaceholder: 'Enter Discount Amount',
                         inputAttributes: {
                           min: '0',
-                          max: '100'
+                          step: 0.1,
                         },
                         confirmButtonColor: '#09b3d4',
+                        confirmButtonText: 'Apply',
                       }).then((result) => {
                         if (result.isConfirmed) {
                           axios.post("pos/discount/" + Swal.getHtmlContainer().querySelector("input[name='type']:checked").value,
@@ -550,6 +851,9 @@ const Home = () => {
                                 successNotify('Discount Applied Successfully');
                                 setDiscount(resp.data.data.discounted_amount);
                               }
+                              else{
+                                errorNotify(resp.data.message);
+                              }
                             })
                             .catch((err) => {
                               console.log(err);
@@ -557,7 +861,7 @@ const Home = () => {
                         }
                       })
                     }}>
-                      <img src={discount_icon} alt="coupon" width='30' /><br />
+                      <img src={discount_icon} alt="discount" width='30' /><br />
                       Discount
                     </button>
                   </Col>

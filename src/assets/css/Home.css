@@ -342,6 +342,14 @@ width: 100%;
     overflow: hidden !important;
     text-overflow: ellipsis !important;
 }
+.cart_item_card {
+    box-shadow: rgba(0, 0, 0, 0.15) 0px 0px 4px 0px;
+}
+.cart_item_card h6{
+    white-space: nowrap !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+}
 .address_div{
     margin-bottom: 0;
 }
@@ -351,4 +359,15 @@ width: 100%;
     border-radius: 0.6rem;
     background-image: linear-gradient(#09b3d4 0,#94e0ef 100%);
     color: rgb(131, 10, 10);
+}
+.select-search-container{
+    --select-search-selected: #16d3e9 !important;
+    width: 100% !important;
+}
+.select-search-container:not(.select-search-is-disabled).select-search-has-focus .select-search-input, .select-search-container:not(.select-search-is-disabled) .select-search-input:hover{
+border-color: #16d3e9 !important;
+}
+.form-check-input:checked {
+    background-color: #0098b8;
+    border-color: #0098b8;
 }
