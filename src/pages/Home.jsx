@@ -54,7 +54,7 @@ const Home = () => {
   });
   const [selectedCustomerAddresses, setSelectedCustomerAddress] = useState();
 
-  const { addItem, totalUniqueItems, cartTotal, items, updateItemQuantity, removeItem, updateItem } = useCart();
+  const { addItem, totalUniqueItems, cartTotal, items, updateItemQuantity, removeItem, updateItem, emptyCart } = useCart();
   const [searchProduct, setSearchProduct] = useState();
   const [itemExpend, setItemExpend] = useState();
   const [categories, setCategories] = useState();
@@ -71,6 +71,25 @@ const Home = () => {
   const [cateID, setCateID] = useState();
   const [query, setQuery] = useState(null);
   const [addAddressModal, setAddAddressModal] = useState();
+  const [insideShiCharge, setInsideShiCharge] = useState("");
+  const [outsideShiCharge, setOutsideShiCharge] = useState("");
+  const [city, setCity] = useState("inside_dhaka");
+  const [shipingCost, setShipingCost] = useState("0.00");
+  const [shipingMethod, setShipingMethod] = useState();
+  let [orderNote, setOrderNote] = useState("");
+  let [paymentMethod, setPaymentMethod] = useState("");
+  useEffect(() => {
+
+    axios.get("get-shipping-charges")
+        .then(resp => {
+          if(resp.data){
+            // console.log(resp.data.shipping_charges);
+            setInsideShiCharge(resp.data.shipping_charges[0].price);
+            setOutsideShiCharge(resp.data.shipping_charges[1].price);
+          }
+        });
+
+  }, []);
   useEffect(() => {
     if (searchProduct && cateID) {
       setQuery("?product_name=" + searchProduct + "&category_id=" + cateID);
@@ -123,17 +142,28 @@ useEffect(() => {
     }
     // console.log('render check');
   }, []);
+// console.log(products);
+  useEffect(() => {
+    if(city==='inside_dhaka'){
+      setShipingCost(insideShiCharge);
+    }
+    else if(city==='outside_dhaka'){
+      setShipingCost(outsideShiCharge);
+    }
+    // console.log(shipingCost);
+    // console.log(outsideShiCharge);
+  }, [city]);
 
   useEffect(() => {
     setSubtotal(cartTotal);
-    setGrandTotal(subtotal - discount - couponAmount + tax);
-  }, [cartTotal, discount, couponAmount, tax, subtotal, grandTotal]);
+    setGrandTotal(subtotal - Number(discount) - Number(couponAmount) + Number(shipingCost) + Number(tax));
+  }, [cartTotal, discount, couponAmount, tax, shipingCost, subtotal, grandTotal]);
 
   useEffect(() => {
       if(searchCustomer){
         axios.get("pos/customer-list?customerSearchInput="+searchCustomer)
         .then(resp => {
-          console.log(resp.data.data);
+          // console.log(resp.data.data);
           setCustomers(resp.data.data);
         });
       }
@@ -152,53 +182,63 @@ useEffect(() => {
     .catch((err) => {
       console.log(err);
     });
-    console.log('customerAddress load function hit');
+    // console.log('customerAddress load function hit');
 }
   useEffect(() => {
-  let radioHtml = '<b class="mb-2 mt-2 col-12">Select Address</b> <br>';
+  let radioHtml = '<b className="mb-2 mt-2 col-12">Select Address</b> <br>';
   if(selectedCustomerAddresses){
     selectedCustomerAddresses.forEach(function (item, key) {
-      radioHtml+=`<div class="form-check form-check-inline col-5 pe-0" style="margin:1rem">
-      <input class="form-check-input discount_type" type="radio" name="address_id" id="`+item.id+`" value="`+item.id+`" required>
-      <label class="form-check-label" for="`+item.id+`">
+      radioHtml+=`<div className="form-check form-check-inline col-5 pe-0" style="margin:1rem">
+      <input className="form-check-input discount_type" type="radio" name="address_id" id="`+item.id+`" value="`+item.id+`" required>
+      <label className="form-check-label" for="`+item.id+`">
       <address className='row address_div'>
       <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">`+item.address+`</p>
       <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">
-      <i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-person" viewBox="0 0 16 16">
+      <i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
       <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
     </svg></i> `+item.name+`</p>
-      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;"><i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-telephone" viewBox="0 0 16 16">
+      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;"><i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-telephone" viewBox="0 0 16 16">
       <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
     </svg></i> `+item.phone+`</p>
       <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">`+item.shipping_state.name+`</p>
       <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">Zip: `+item.zip+`</p>
       </address>
       </label>
+      <input type="hidden" id="address_name" value="`+item.name+`" required>
+      <input type="hidden" id="address" value="`+item.address+`" required>
+      <input type="hidden" id="address_phone" value="`+item.phone+`" required>
+      <input type="hidden" id="address_email" value="`+item.email+`" required>
+      <input type="hidden" id="shipping_id" value="`+item.shipping_state.id+`" required>
+      <input type="hidden" id="zip" value="`+item.zip+`" required>
+      <input type="hidden" id="area" value="`+item.area+`" required>
     </div>`;
     });
   }
   else{
-    radioHtml=`<h5 class="text-warning">No Address Found</h5>`;
+    radioHtml=`<h5 className="text-warning">No Address Found</h5>`;
   }
   setAddressHtml(radioHtml)
   // console.log('changes in the radio html' + radioHtml);
 }, [selectedCustomerAddresses]);
-  console.log(selectedCustomerAddresses);
+  // console.log(selectedCustomerAddresses);
   const [errorList, setError] = useState();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [contact, setContact] = useState("");
-  const [city, setCity] = useState("inside_dhaka");
   const [area, setArea] = useState("");
   const [areaID, setAreaId] = useState("");
   const [zip, setZip] = useState("");
   const [defaultValue, setDefault] = useState(false);
+  const [couponId, setCouponId] = useState();
   const [address, setAddress] = useState("");
   const [shippingZones, setShippingZones] = useState([]);
+  const [variation, setVariation] = useState({
+    id: '', value: '', stock: '', attribute_final_price: '', old_price: ''
+  });
   useEffect(() => {
     // console.log(city);
     if (city == 'inside_dhaka') {
-      axios.get("ec/area-by-district/dhaka")
+      axios.get("https://ultimateasiteapi.com/api/ec/area-by-district/dhaka")
         .then(resp => {
           // console.log(resp.data.data);
           setShippingZones(resp.data.data.data);
@@ -207,7 +247,7 @@ useEffect(() => {
         });
     }
     else if (city == 'outside_dhaka') {
-      axios.get("ec/get-cities")
+      axios.get("https://ultimateasiteapi.com/api/ec/get-cities")
         .then(resp => {
           // console.log(resp.data.data);
           setShippingZones(resp.data.data);
@@ -271,6 +311,135 @@ useEffect(() => {
     // console.log('errorlist');
     console.log(errorList);
     event.preventDefault();
+  };
+
+  const checkOutSubmit = () => {
+    // event.preventDefault();
+    if(!city || !paymentMethod) {
+      Swal.fire('Select Shipping Zone & Payment Method')
+    }
+    else  {
+      var customer_city = 0;
+      if(city=="inside_dhaka"){
+        customer_city = 14;
+      }
+      else if(city=="outside_dhaka"){
+        customer_city = 15;
+      }
+      var customer_details = {
+        customer_name: selectedCustomer.customer_name,
+        customer_email: selectedCustomer.customer_email,
+        customer_phone: selectedCustomer.customer_contact,
+        customer_address: selectedCustomer.customer_address,
+        customer_city: customer_city,
+        customer_zip: selectedCustomer.zip ?? '',
+      }
+      var shipping_details = {
+        customer_name: username,
+        customer_email: email,
+        customer_phone: contact,
+        customer_address: address,
+        customer_city: city,
+        customer_zip: zip,
+        shipping_area: area,
+      };
+
+      if(!customer_details.customer_email){
+        customer_details.customer_email="";
+      }
+      else if(!customer_details.customer_city){
+        customer_details.customer_city="";
+      }
+      else if(!customer_details.customer_phone){
+        customer_details.customer_phone="";
+      }
+      var products = [];
+      items.forEach(function (item) {
+      // console.log("listcart theke id"+item.id);
+      products.push({
+        id: item.id,
+        product_id: item.product_id,
+        product_name: item.name,
+        product_price: item.price,
+        qty: item.quantity,
+        image: item.image,
+        variation_id: item.variation_id && item.variation_id,
+        variation_value: item.variation_value && item.variation_value,
+        variation_stock: item.variation_stock && item.variation_stock,
+        variation_final_price: item.variation_final_price && item.variation_final_price
+      });
+    });
+
+      var order = {
+        customer_id: selectedCustomer.id,
+        customer_details: customer_details,
+        shipping_details: shipping_details,
+        products: products,
+        order_note: orderNote,
+        payment_method: paymentMethod,
+        shipping_cost: shipingCost,
+        vat: tax,
+        coupon_id: couponId,
+        order_from: 'pos'
+      };
+      console.log(order);
+      if (paymentMethod === "ssl") {
+        // console.log(order);
+        axios.post('order', order)
+          .then(resp => {
+            console.log(resp.data);
+            if (resp.data.success) {
+              emptyCart();
+              window.location.replace(resp.data.data);
+            }
+            else {
+              setError(resp.data.message);
+            }
+            // window.location.replace(resp.gatewayPageUrl);
+          })
+          .catch(err => {
+            console.log(err);
+          });
+
+      }
+      else {
+        axios
+          .post("pos/order", order)
+          .then(function (resp) {
+            console.log(resp.data);
+            var data = resp.data;
+            if (resp.data.success) {
+              Swal.fire({
+                position: 'top-end',
+                icon: 'success',
+                title: data.message,
+                showConfirmButton: false,
+                timer: 1500
+              });
+                emptyCart();
+
+            }
+            else {
+              Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                title: 'Something went wrong please try again later',
+                showConfirmButton: true
+              });
+              setError(resp.data.message);
+            }
+
+          })
+          .catch((err) => {
+            console.log(err);
+            if (err) {
+              setError("There is something wrong in the order!!!");
+            }
+          });
+      }
+
+
+    }
   };
   return (
     <div>
@@ -346,7 +515,7 @@ useEffect(() => {
                       <Col key={index} md={6} lg={3}>
                         <div className="pos_product_card" onClick={() => {
                           // errorNotify();
-                          if (product.stock > 0) {
+                          if (product.stock > 0 && product.attribute_id===undefined) {
                             addItem({
                               id: product.id,
                               product_id: product.id,
@@ -355,6 +524,21 @@ useEffect(() => {
                               quantity: 1,
                               image: product.image.small,
                               stock: product.stock
+                            });
+                            successNotify('Product added to cart');
+                          } else if (product.stock > 0) {
+                            addItem({
+                              id: product.id+'_'+product.attribute_id,
+                              product_id: product.id,
+                              name: product.name,
+                              price: product.final_product_price,
+                              quantity: 1,
+                              image: product.image.small,
+                              stock: product.stock,
+                              variation_id : product.attribute_id,
+                              variation_final_price : product.final_product_price ,
+                              variation_stock : product.stock,
+                              variation_value :  product.name,
                             });
                             successNotify('Product added to cart');
                           } else {
@@ -366,7 +550,7 @@ useEffect(() => {
                             <Col xs={6} className="pe-0">
                               {product.image && (
 
-                                <img className="img-fluid" src={product.image.small} alt={product.name} />
+                                <img className="img-fluid pos_product_img" height={100} width={100} src={product.image.small} alt={product.name} />
                               )}
                             </Col>
                             <Col xs={6} className="pos_product_details">
@@ -405,8 +589,8 @@ useEffect(() => {
                     }
                     Swal.fire({
                       title: 'Customer Addresses',
-                      html: `<div class="row" style="width: 100%">
-                      <div class="col-12 row">
+                      html: `<div className="row" style="width: 100%">
+                      <div className="col-12 row">
                       `+addressHtml+`
                       </div>
                       </div>
@@ -416,6 +600,13 @@ useEffect(() => {
                     }).then((result) => {
                       if (result.isConfirmed) {
                         setCustomerAddressId(Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value);
+                        setUsername(Swal.getHtmlContainer().querySelector("#address_name").value);
+                        setContact(Swal.getHtmlContainer().querySelector("#address_phone").value);
+                        setEmail(Swal.getHtmlContainer().querySelector("#address_email").value);
+                        setCity(Swal.getHtmlContainer().querySelector("#shipping_id").value);
+                        setAddress(Swal.getHtmlContainer().querySelector("#address").value);
+                        setZip(Swal.getHtmlContainer().querySelector("#zip").value);
+                        setArea(Swal.getHtmlContainer().querySelector("#area").value);
                       }
                     })
 
@@ -484,8 +675,8 @@ useEffect(() => {
                       onChange={(e) => { setCity(e.target.value); }}
                     >
                       {/* <option>Your City</option> */}
-                      <option value={'inside_dhaka'}>Inside Dhaka</option>
-                      <option value={'outside_dhaka'}>Outside Dhaka</option>
+                      <option value={'inside_dhaka'}>Inside Dhaka {insideShiCharge}</option>
+                      <option value={'outside_dhaka'}>Outside Dhaka {outsideShiCharge}</option>
                     </select>
                     {errorList && (<span className='text-danger'>{errorList.city}</span>)}
                   </div>{" "}
@@ -574,7 +765,7 @@ useEffect(() => {
                     setCustomerAddressId(null);
                   }}>
                     <i style={{color:'red'}}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" classAddress="bi bi-trash" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path></svg>
                     </i>
                     </button>
                   </div>
@@ -594,11 +785,11 @@ useEffect(() => {
                        
                         Swal.fire({
                           title: 'Customer Details',
-                          html: `<div class="row" style="width: 100%">
-                          <h6 class="col-7 mb-0 text-start">Name: `+customer.customer_name+`</h6>
-                          <p class="col-5 mb-0 text-end">`+customer.customer_contact+`</p>
-                          <p class="col-8 mb-0 text-start">Email: `+customer.customer_email+`</p>
-                          <p class="col-4 mb-0 text-end">Gender: `+customer.customer_gender+`</p>
+                          html: `<div className="row" style="width: 100%">
+                          <h6 className="col-7 mb-0 text-start">Name: `+customer.customer_name+`</h6>
+                          <p className="col-5 mb-0 text-end">`+customer.customer_contact+`</p>
+                          <p className="col-8 mb-0 text-start">Email: `+customer.customer_email+`</p>
+                          <p className="col-4 mb-0 text-end">Gender: `+customer.customer_gender+`</p>
                           </div>
                                   `,
                           confirmButtonColor: '#09b3d4',
@@ -617,7 +808,7 @@ useEffect(() => {
                   <div className="col-4">
                     <button className="col-5 btn customer_add_btn" title="Add Customer">
                       <i>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" class="bi bi-person-add" viewBox="0 0 16 16">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="currentColor" className="bi bi-person-add" viewBox="0 0 16 16">
                           <path d="M12.5 16a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Zm.5-5v1h1a.5.5 0 0 1 0 1h-1v1a.5.5 0 0 1-1 0v-1h-1a.5.5 0 0 1 0-1h1v-1a.5.5 0 0 1 1 0Zm-2-6a3 3 0 1 1-6 0 3 3 0 0 1 6 0ZM8 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
                           <path d="M8.256 14a4.474 4.474 0 0 1-.229-1.004H3c.001-.246.154-.986.832-1.664C4.484 10.68 5.711 10 8 10c.26 0 .507.009.74.025.226-.341.496-.65.804-.918C9.077 9.038 8.564 9 8 9c-5 0-6 3-6 4s1 1 1 1h5.256Z" />
                         </svg>
@@ -631,8 +822,7 @@ useEffect(() => {
               <div className="cart_items">
                 {items.map((item, key) => {
                   return (
-                    <>
-                    <div key={key} className="cart_item_card me-2" style={{ cursor: 'pointer' }}>
+                    <div key={key} className="cart_item_card me-2 mt-1" style={{ cursor: 'pointer' }}>
                       <div className="row me-2" onClick={() => {
                       if (itemExpend == item.id) {
                         setItemExpend(null);
@@ -641,11 +831,11 @@ useEffect(() => {
                         setItemExpend(item.id);
                       }
                     }}>
-                      <div className="col-1">
+                      <div className="col-1 center_col">
                         {itemExpend === item.id ? (
 
                           <i style={{ color: '#09b3d4' }}>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-chevron-up" viewBox="0 0 16 16">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-up" viewBox="0 0 16 16">
                               <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z" />
                             </svg></i>
                         ) : (
@@ -656,25 +846,25 @@ useEffect(() => {
 
                         )}
                       </div>
-                      <div className="col-3" data-title="Product">
-                        <img className="img-fluid" src={item.image} width='100' alt="Foster Farms Takeout Crispy classNameic" />
+                      <div className="col-3 center_col" data-title="Product">
+                        <img className="img-fluid cart_product_image" src={item.image} width='100' height='100' alt="Foster Farms Takeout Crispy classNameic" />
                       </div>
-                      <div className="col-5" style={{ paddingLeft: '1rem' }} data-title="Name">
-                        <h6 className="m-0 mt-2" title={item.name}>
+                      <div className="col-5 center_col" data-title="Name">
+                        <h5 className="m-0" title={item.name}>
                           {item.name}
-                          <h5 className="text-body"> ৳{item.price} x {item.quantity} </h5>{" "}
-                        </h6>
+                          <h6 className="text-body"> ৳{item.price} x {item.quantity} </h6>{" "}
+                        </h5>
                         {/* <p className="mb-0"> <small>(Weight: 4KG)</small></p> */}
                       </div>
-                      <div data-title="Price" className="col-2">
+                      <div data-title="Price" className="col-2 ps-0 center_col">
 
-                        <h5 className="text-body text-center mt-2"> ৳{(item.price * item.quantity)} </h5>{" "}
+                        <h6 className="text-body text-center"> ৳{(item.price * item.quantity)} </h6>{" "}
                         {/* <small>
                                 <del>$90.00</del>
                               </small> */}
                       </div>
 
-                      <div data-title="Remove" className="col-1">
+                      <div data-title="Remove" className="col-1 ps-0 center_col">
 
                         <button data-title="Remove" className="btn basic_btn" onClick={() => {
                           infoNotify('Product removed from cart');
@@ -689,7 +879,6 @@ useEffect(() => {
                       </div>
                       </div>
                       <div className="row">
-                        
                       {itemExpend === item.id && (
                         <>
                           <div className="col-5">
@@ -728,7 +917,6 @@ useEffect(() => {
                       )}
                       </div>
                     </div>
-                    </>
                   );
                 })}
 
@@ -788,6 +976,12 @@ useEffect(() => {
                       )}
                       -{couponAmount && couponAmount > 0 ? Number(couponAmount) : '0.00'}৳</p>
                   </Col>
+                  <Col md={8}>
+                    <h6>Shipping Charge:</h6>
+                  </Col>
+                  <Col md={4}>
+                    <p className="text-end pe-3">{Number(shipingCost)}৳</p>
+                  </Col>
                   <Col md={6}>
                     <button className="btn discount_card" onClick={() => {
                       Swal.fire({
@@ -802,9 +996,10 @@ useEffect(() => {
                             { coupon: result.value, sub_total: subtotal})
                             .then(function (resp) {
                               if (resp.data.success) {
-                                console.log(resp.data);
+                                // console.log(resp.data);
                                 successNotify('Coupon Applied Successfully');
                                 setCouponAmount(resp.data.data.coupon_discount);
+                                setCouponId(resp.data.data.coupon_id);
                               }else{
                                 errorNotify(resp.data.message);
                               }
@@ -823,14 +1018,14 @@ useEffect(() => {
                     <button className="btn discount_card" onClick={() => {
                       Swal.fire({
                         title: 'Apply Discount',
-                        html: `<b class="mb-2">Select discount type</b> <br>
-                                  <div class="form-check form-check-inline">
-                                    <input class="form-check-input discount_type" type="radio" name="type" id="fixed" value="fixed">
-                                    <label class="form-check-label" for="fixed">Fixed</label>
+                        html: `<b className="mb-2">Select discount type</b> <br>
+                                  <div className="form-check form-check-inline">
+                                    <input className="form-check-input discount_type" type="radio" name="type" id="fixed" value="fixed">
+                                    <label className="form-check-label" for="fixed">Fixed</label>
                                   </div>
-                                  <div class="form-check form-check-inline">
-                                    <input class="form-check-input discount_type" type="radio" name="type" id="percentage" value="percentage">
-                                    <label class="form-check-label" for="percentage">Percentage</label>
+                                  <div className="form-check form-check-inline">
+                                    <input className="form-check-input discount_type" type="radio" name="type" id="percentage" value="percentage">
+                                    <label className="form-check-label" for="percentage">Percentage</label>
                                   </div>
                                 `,
                         input: 'number',
@@ -865,19 +1060,42 @@ useEffect(() => {
                       Discount
                     </button>
                   </Col>
-                  {/* <Col md={4}>
-                <button className="btn discount_card">
-                <img src={tag_icon} alt="coupon" />
-                  Hold
-                </button>
-                </Col> */}
+                  <Col md={11}>
+                  <select className="form-control ms-1 mt-3" name="shipping_city" title="Select Shipping Zone" required
+                  value={city}
+                  onChange={(e) => {setCity(e.target.value);}}>
+                  <option selected>Select Shipping Zone</option>
+                  <option value="inside_dhaka">Inside Dhaka{'- '+insideShiCharge}</option>
+                  <option value="outside_dhaka">Outside Dhaka{'- '+outsideShiCharge}</option>
+                  </select>
+                  </Col>
+                  <Col md={11}>
+                  <select className="form-control ms-1 mt-3" name="payment_method" title="Payment Method" required
+                  value={paymentMethod}
+                  onChange={(e) => {setPaymentMethod(e.target.value);}}>
+                  <option selected >Payment Method
+                  </option>
+                  <option value="cod">Cash On Delivery</option>
+                  <option value="ssl">SSL Commerez</option>
+                  <option value="bkash-merchant">bKash Merchant</option>
+                  </select>
+                  </Col>
+                  <Col md={11}>
+                  <div className="ms-1">
+                      <label className="pt-2 mb-1">Order Notes </label>
+                      <textarea className="form-control" placeholder="Oder Notes" name="order_note" value={orderNote}
+                      onChange={(e) => {setOrderNote(e.target.value);}} />
+                  </div>
+                  </Col>
                 </Row><br />
-                <button className="btn cart_order_btn">
-                  <p className="text-start ps-4 pt-2">Proceed to Pay
+                <button className="btn cart_order_btn" onClick={()=>{
+                  checkOutSubmit();
+                }}>
+                  <p className="text-start ps-4 pt-2">Proceed To Order
                     <br />
                     <i>{totalUniqueItems} Items</i>
                   </p>
-                  <p>{Number(grandTotal.toFixed(2))}৳&nbsp;
+                  <p>{Number(grandTotal).toFixed(2)}৳&nbsp;
                     <span role="img" aria-label="double-right" className="anticon anticon-double-right">
                       <svg viewBox="64 64 896 896" focusable="false" data-icon="double-right" width="1em" height="1em" fill="currentColor" aria-hidden="true">
                         <path d="M533.2 492.3L277.9 166.1c-3-3.9-7.7-6.1-12.6-6.1H188c-6.7 0-10.4 7.7-6.3 12.9L447.1 512 181.7 851.1A7.98 7.98 0 00188 864h77.3c4.9 0 9.6-2.3 12.6-6.1l255.3-326.1c9.1-11.7 9.1-27.9 0-39.5zm304 0L581.9 166.1c-3-3.9-7.7-6.1-12.6-6.1H492c-6.7 0-10.4 7.7-6.3 12.9L751.1 512 485.7 851.1A7.98 7.98 0 00492 864h77.3c4.9 0 9.6-2.3 12.6-6.1l255.3-326.1c9.1-11.7 9.1-27.9 0-39.5z"></path></svg>
