@@ -88,7 +88,9 @@
     -moz-osx-font-smoothing: grayscale;
 }
 .category_card span {
-    font-size: 24px;
+    font-size: 76px;
+    width: 40px;
+    height: 40px;
 }
 .category_card p {
     white-space: nowrap;
@@ -235,7 +237,7 @@ width: 100%;
 }
 .cart_items{
     padding-bottom: 4.5rem;
-    height: 60vh;
+    height: 46vh;
     overflow-x: hidden;
     overflow-y: scroll;
 }
