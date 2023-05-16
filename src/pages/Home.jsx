@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Layout from "../layouts/Layout";
 import { Col, Modal, Row } from "react-bootstrap";
 import Swal from 'sweetalert2';
@@ -14,9 +14,12 @@ import tag_icon from '../assets/images/icons/tag_icon.png';
 import discount_icon from '../assets/images/icons/discount_icon.png';
 import { toast } from 'react-toastify';
 import { useCart } from "react-use-cart";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import SelectSearch from "react-select-search";
+import { useDispatch, useSelector } from "react-redux";
+import { setUserData } from "../store/UserData";
+import LoadingBar from "react-top-loading-bar";
 
 const Home = () => {
   const successNotify = (v) => toast.success(v, {
@@ -52,8 +55,10 @@ const Home = () => {
     theme: "colored",
     // progressClassName: "fancy-progress-bar",
   });
+  const ref = useRef(null);
+  const dispatch = useDispatch();
   const [selectedCustomerAddresses, setSelectedCustomerAddress] = useState();
-
+  const navigate = useNavigate();
   const { addItem, totalUniqueItems, cartTotal, items, updateItemQuantity, removeItem, updateItem, emptyCart } = useCart();
   const [searchProduct, setSearchProduct] = useState();
   const [itemExpend, setItemExpend] = useState();
@@ -79,6 +84,55 @@ const Home = () => {
   const [shipingMethod, setShipingMethod] = useState();
   let [orderNote, setOrderNote] = useState("");
   let [paymentMethod, setPaymentMethod] = useState("");
+  const { UserData } = useSelector((state) => state.UserData);
+
+  const search = useLocation().search;
+  const queryParam = new URLSearchParams(search);
+  
+
+  useEffect(() => {
+    ref.current.continuousStart();
+    if (UserData || queryParam.get('token')) {
+      console.log('pos verify');
+      var token = queryParam.get('token') !== null ? queryParam.get('token') : (UserData ? UserData.token : '');
+        axios.get("pos/verify-token/" + token)
+        .then(resp => {
+          ref.current.complete();
+          localStorage.removeItem("posUser");
+          dispatch(setUserData(null))
+          if(resp.data.success){
+            // Swal.fire({
+            //   position: 'center',
+            //   icon: 'success',
+            //   title: resp.data.message,
+            //   showConfirmButton: false,
+            //   timer: 1000
+            // });
+            localStorage.setItem("posUser", JSON.stringify(resp.data.data));
+            dispatch(setUserData(resp.data.data));
+          }
+          else if(resp.data.success==false){
+              Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                title: resp.data.message,
+                showConfirmButton: false,
+                timer: 1000
+              })
+              localStorage.removeItem("posUser");
+              dispatch(setUserData(null))
+            navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+          }
+  
+        }).catch(err => {
+          ref.current.complete();
+          console.log(err);
+        });
+      
+    }
+  }, [queryParam.get('token')]);
+  // console.log(UserData);
+
   useEffect(() => {
 
     axios.get("get-shipping-charges")
@@ -90,7 +144,7 @@ const Home = () => {
         }
       });
 
-  }, []);
+  }, [insideShiCharge,outsideShiCharge]);
   useEffect(() => {
     if (searchProduct && cateID) {
       setQuery("?product_name=" + searchProduct + "&category_id=" + cateID);
@@ -111,28 +165,48 @@ const Home = () => {
     if (searchProduct && cateID && query) {
       axios.get("pos/products" + query)
         .then(resp => {
-          setProducts(resp.data.data);
+          if(resp.data.success===false && queryParam.get('token') === null){
+            navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+          }
+          else{
+            setProducts(resp.data.data);
+          }
         });
     }
     else if (searchProduct && query) {
       axios.get("pos/products" + query)
         .then(resp => {
+          if(resp.data.success===false && queryParam.get('token') === null){
+            navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+          }
+          else{
           setProducts(resp.data.data);
+          }
         });
     }
     else if (cateID && query) {
       axios.get("pos/products" + query)
         .then(resp => {
+          if(resp.data.success===false && queryParam.get('token') === null){
+            navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+          }
+          else{
           setProducts(resp.data.data.data);
+          }
         });
     }
     else {
       axios.get("pos/products")
         .then(resp => {
+          if(resp.data.success===false && queryParam.get('token') === null){
+            navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+          }
+          else{
           setProducts(resp.data.data.data);
+          }
         });
     }
-  }, [query]);
+  }, [UserData, query]);
 
   useEffect(() => {
     if (!categories) {
@@ -142,7 +216,7 @@ const Home = () => {
         });
     }
     // console.log('render check');
-  }, []);
+  }, [categories]);
   // console.log(products);
   useEffect(() => {
     if (city === 'inside_dhaka') {
@@ -162,7 +236,6 @@ const Home = () => {
 
   useEffect(() => {
     setCustomers(null);
-    console.log(searchCustomer);
     if (searchCustomer) {
       axios.get("pos/customer-list?customerSearchInput=" + searchCustomer)
         .then(resp => {
@@ -189,35 +262,50 @@ const Home = () => {
       });
     // console.log('customerAddress load function hit');
   }
+  console.log(selectedCustomerAddresses);
   useEffect(() => {
     let radioHtml = '<b className="mb-2 mt-2 col-12">Select Address</b> <br>';
     if (selectedCustomerAddresses) {
-      selectedCustomerAddresses.forEach(function (item, key) {
-        radioHtml += `<div className="form-check form-check-inline col-5 pe-0" style="margin:1rem">
-      <input className="form-check-input discount_type" type="radio" name="address_id" id="`+ item.id + `" value="` + item.id + `" required>
-      <label className="form-check-label" for="`+ item.id + `">
-      <address className='row address_div'>
-      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">`+ item.address + `</p>
-      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">
-      <i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
-      <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
-    </svg></i> `+ item.name + `</p>
-      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;"><i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-telephone" viewBox="0 0 16 16">
-      <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
-    </svg></i> `+ item.phone + `</p>
-      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">`+ item.shipping_state.name + `</p>
-      <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">Zip: `+ item.zip + `</p>
-      </address>
-      </label>
-      <input type="hidden" id="address_name" value="`+ item.name + `" required>
-      <input type="hidden" id="address" value="`+ item.address + `" required>
-      <input type="hidden" id="address_phone" value="`+ item.phone + `" required>
-      <input type="hidden" id="address_email" value="`+ item.email + `" required>
-      <input type="hidden" id="shipping_id" value="`+ item.shipping_state.id + `" required>
-      <input type="hidden" id="zip" value="`+ item.zip + `" required>
-      <input type="hidden" id="area" value="`+ item.area + `" required>
-    </div>`;
-      });
+      try {
+        selectedCustomerAddresses.forEach(function (item, key) {
+          radioHtml += `<div className="form-check form-check-inline col-5 pe-0" style="margin:1rem">
+        <input className="form-check-input discount_type" type="radio" name="address_id" id="`+ item.id + `" value="` + item.id + `" required>
+        <label className="form-check-label" for="`+ item.id + `">
+        <address className='row address_div'>
+        <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">`+ item.address + `</p>
+        <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">
+        <i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
+        <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
+      </svg></i> `+ item.name + `</p>
+        <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;"><i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-telephone" viewBox="0 0 16 16">
+        <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
+      </svg></i> `+ item.phone + `</p>
+        <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">`+ item.shipping_state.name + `</p>
+        <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">Zip: `+ item.zip + `</p>
+        </address>
+        </label>
+        <input type="hidden" id="address_name" value="`+ item.name + `" required>
+        <input type="hidden" id="address" value="`+ item.address + `" required>
+        <input type="hidden" id="address_phone" value="`+ item.phone + `" required>
+        <input type="hidden" id="address_email" value="`+ item.email + `" required>
+        <input type="hidden" id="shipping_id" value="`+ item.shipping_state.id + `" required>
+        <input type="hidden" id="zip" value="`+ item.zip + `" required>
+        <input type="hidden" id="area" value="`+ item.area + `" required>
+      </div>`;
+        });
+        
+      } catch (error) {
+        Swal.fire({
+          customClass: {
+            icon: 'mt-4'
+          },
+          position: 'center',
+          icon: 'success',
+          title: 'Ops! Something Went Wrong',
+          showConfirmButton: true,
+        });
+        console.error(error);
+      }
     }
     else {
       radioHtml = `<h5 className="text-warning">No Address Found</h5>`;
@@ -414,7 +502,7 @@ const Home = () => {
         customer_name: selectedCustomer.customer_name,
         customer_email: selectedCustomer.customer_email,
         customer_phone: selectedCustomer.customer_contact,
-        customer_address: selectedCustomer.customer_address,
+        customer_address: selectedCustomer.customer_address ?? '',
         customer_city: customer_city,
         customer_zip: selectedCustomer.zip ?? '',
       }
@@ -423,7 +511,7 @@ const Home = () => {
         customer_email: email,
         customer_phone: contact,
         customer_address: address,
-        customer_city: city,
+        customer_city: customer_city,
         customer_zip: zip,
         shipping_area: area,
       };
@@ -455,6 +543,7 @@ const Home = () => {
       });
 
       var order = {
+        admin_id: UserData.id,
         customer_id: selectedCustomer.id,
         customer_details: customer_details,
         shipping_details: shipping_details,
@@ -529,6 +618,10 @@ const Home = () => {
 
   return (
     <div>
+      <LoadingBar
+        color='#0098b8' 
+        ref={ref}
+        />
       <Layout>
         <Row>
           <Col md={8} className="ps-0">
@@ -564,7 +657,7 @@ const Home = () => {
               </div>
               <h2 className="p-2">Products</h2>
               <Row className="justify-content-center">
-                <Col md={7}>
+                <Col md={8}>
                   <div className="input-group ms-2">
                     <input type="search" className="form-control search_input" placeholder="Search Product.." aria-label="Recipient's username" aria-describedby="basic-addon2"
                       value={searchProduct}
@@ -586,10 +679,10 @@ const Home = () => {
                     })
                   }}><img src={bar_icon} height={30} alt="bar icon" /></button>
                 </Col>
-                <Col xs={3} md={1} className="ps-0">
+                {/* <Col xs={3} md={1} className="ps-0">
 
                   <button className="btn basic_btn"><img src={plus_icon} height={30} alt="bar icon" /></button>
-                </Col>
+                </Col> */}
                 <Col xs={6} md={3}>
                   <p className="text-end pe-3">{products ? products.length : '0'} Products</p>
                 </Col>
@@ -654,7 +747,7 @@ const Home = () => {
               </Row>
             </div>
           </Col>
-          <Col md={4} className="">
+          <Col md={4} className="ps-0">
             <div className="cart_section">
               <div className="customer_section row">
                 {selectedCustomer ? (
@@ -1237,7 +1330,7 @@ const Home = () => {
                   <Col md={4}>
                     <p className="text-end pe-3">{Number(shipingCost)}৳</p>
                   </Col>
-                  <Col md={6}>
+                  <Col md={4}>
                     <button className="btn discount_card" onClick={() => {
                       Swal.fire({
                         title: 'Enter Coupon Code',
@@ -1269,7 +1362,7 @@ const Home = () => {
                       Coupon
                     </button>
                   </Col>
-                  <Col md={6}>
+                  <Col md={4}>
                     <button className="btn discount_card" onClick={() => {
                       Swal.fire({
                         title: 'Apply Discount',
@@ -1313,6 +1406,38 @@ const Home = () => {
                     }}>
                       <img src={discount_icon} alt="discount" width='30' /><br />
                       Discount
+                    </button>
+                  </Col>
+                  <Col md={4}>
+                    <button className="btn discount_card" onClick={() => {
+                      Swal.fire({
+                        title: 'Enter Coupon Code',
+                        input: 'text',
+                        inputPlaceholder: 'Your Coupon Code',
+                        confirmButtonColor: '#09b3d4',
+                        confirmButtonText: 'Apply',
+                      }).then((result) => {
+                        if (result.isConfirmed) {
+                          axios.post("pos/coupon-apply/",
+                            { coupon: result.value, sub_total: subtotal })
+                            .then(function (resp) {
+                              if (resp.data.success) {
+                                // console.log(resp.data);
+                                successNotify('Coupon Applied Successfully');
+                                setCouponAmount(resp.data.data.coupon_discount);
+                                setCouponId(resp.data.data.coupon_id);
+                              } else {
+                                errorNotify(resp.data.message);
+                              }
+                            })
+                            .catch((err) => {
+                              console.log(err);
+                            });
+                        }
+                      })
+                    }}>
+                      <img src={tag_icon} alt="coupon" width='30' /><br />
+                      Coupon
                     </button>
                   </Col>
                   <Col md={11}>
@@ -1365,4 +1490,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default React.memo(Home);

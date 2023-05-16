@@ -16,6 +16,10 @@ const Login = () => {
   useEffect(() => {
     document.title = "POS | Login";
     window.scrollTo(0, 0);
+    ref.current.continuousStart();
+    setTimeout(() => {
+      ref.current.complete();
+    }, 100);
 
   }, []);
   const ref = useRef(null);
@@ -40,13 +44,14 @@ const Login = () => {
   }, []);
 
   const loginSubmit = (e) => {
-    var obj = { user_input: username, password: password };
+    var obj = { admin_input: username, password: password };
     ref.current.continuousStart();
     // pos/login 
     axios
-      .post("customer/login", obj)
+      .post("pos/login", obj)
       .then(function (resp) {
         var data = resp.data;
+        console.log(data);
         if (data.success === false) {
           ref.current.complete();
           setError(resp.data.message);
@@ -57,19 +62,20 @@ const Login = () => {
             showConfirmButton: false,
             timer: 2000
           })
+          localStorage.removeItem("posUser");
+            dispatch(setUserData(null));
         }
         // console.log(localStorage.getItem("user"));
-        if (data.status) {
-          var user = { token: data.token, customer_id: data.data.id, customer_name: data.data.customer_name, user: data.data };
-          dispatch(setUserData(user));
-          localStorage.setItem("user", JSON.stringify(user));
-          Swal.fire({
-            position: 'center',
-            icon: 'success',
-            title: 'Successfully logged in',
-            showConfirmButton: false,
-            timer: 1500
-          });
+        if (data.success) {
+          localStorage.setItem("posUser", JSON.stringify(data.data));
+            dispatch(setUserData(data.data));
+           Swal.fire({
+              position: 'center',
+              icon: 'success',
+              title: data.message,
+              showConfirmButton: false,
+              timer: 1000
+            });
           navigate("/",{ replace: true });
           // window.location.reload(false);
         }
@@ -86,7 +92,6 @@ const Login = () => {
         color='#0098b8' 
         ref={ref}
         />
-        <Layout>
           <div className="wrapper">
             <div className="logo">
               <img src={PosIcon} alt="" />
@@ -99,7 +104,7 @@ const Login = () => {
                 <span className="far fa-user"></span>
                 <input type="text" name="userName" id="userName" placeholder="Email"
                   value={username}
-                  onChange={(e) => setUserName(e.target.value)} />
+                  onChange={(e) => setUserName(e.target.value)} autoComplete={true} />
               </div>
                   {errorList && (<><span className='text-danger'>{errorList.user_input[0]}</span><br/><br/></>)}
               <div className="form-field d-flex align-items-center">
@@ -107,7 +112,7 @@ const Login = () => {
                 <input type="password" name="password" id="pwd" placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete={'false'} />
+                  autoComplete={'false'} required />
               </div>
               {errorList && (<><span className='text-danger'>{errorList.password[0]}</span><br/></>)}
               <button className="btn mt-3">Login</button>
@@ -116,9 +121,8 @@ const Login = () => {
             <a href="#">Forget password?</a> or <a href="#">Sign up</a>
         </div> */}
           </div>
-        </Layout>
       </div>
     );
   };
 
-  export default Login;
+  export default React.memo(Login);

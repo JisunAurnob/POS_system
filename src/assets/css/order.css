@@ -1,0 +1,10 @@
+.order_card{
+    background-color: white;
+    margin: 1rem;
+    border: 1px solid rgb(237, 237, 237);
+    border-radius: 0.7rem;
+    cursor: pointer;
+}
+.order_card:hover{
+    border: 1px solid rgb(98, 141, 158);
+}

@@ -206,7 +206,7 @@ width: 100%;
 .discount_card{
     background-color: rgb(241, 238, 238);
     padding: 6% 12%;
-    width: 10rem;
+    width: 9rem;
 }
 .discount_card:hover{
     background-color: rgb(238, 241, 241);

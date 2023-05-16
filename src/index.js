@@ -9,7 +9,6 @@ import { CartProvider } from 'react-use-cart';
 import { Provider } from 'react-redux';
 import store from './store/Store.js';
 
-axios.defaults.baseURL = "https://uol-v-2.hostprohub.com/api/";
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
