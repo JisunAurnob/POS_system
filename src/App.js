@@ -13,8 +13,8 @@ import Orders from './pages/Orders';
 
 function App() {
   const dispatch = useDispatch();
-  // axios.defaults.baseURL = "https://uol-v-2.hostprohub.com/api/";
-  axios.defaults.baseURL = "http://192.168.100.17:8000/api/";
+  axios.defaults.baseURL = "https://uol-v-2.hostprohub.com/api/";
+  // axios.defaults.baseURL = "http://192.168.100.24:8080/api/";
   axios.defaults.headers.common["Accept"] = 'application/json';
   axios.defaults.headers.common["retry-after"] = 3600;
   var token = null;

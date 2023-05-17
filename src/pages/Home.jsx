@@ -127,6 +127,7 @@ const Home = () => {
         }).catch(err => {
           ref.current.complete();
           console.log(err);
+          navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
         });
       
     }
@@ -1411,33 +1412,36 @@ const Home = () => {
                   <Col md={4}>
                     <button className="btn discount_card" onClick={() => {
                       Swal.fire({
-                        title: 'Enter Coupon Code',
+                        title: 'Enter Order Comment',
                         input: 'text',
-                        inputPlaceholder: 'Your Coupon Code',
+                        inputPlaceholder: 'Order Comment',
                         confirmButtonColor: '#09b3d4',
-                        confirmButtonText: 'Apply',
+                        confirmButtonText: 'Add',
+                        showCancelButton: true,
                       }).then((result) => {
                         if (result.isConfirmed) {
-                          axios.post("pos/coupon-apply/",
-                            { coupon: result.value, sub_total: subtotal })
-                            .then(function (resp) {
-                              if (resp.data.success) {
-                                // console.log(resp.data);
-                                successNotify('Coupon Applied Successfully');
-                                setCouponAmount(resp.data.data.coupon_discount);
-                                setCouponId(resp.data.data.coupon_id);
-                              } else {
-                                errorNotify(resp.data.message);
-                              }
-                            })
-                            .catch((err) => {
-                              console.log(err);
-                            });
+                          // axios.post("pos/coupon-apply/",
+                          //   { coupon: result.value, sub_total: subtotal })
+                          //   .then(function (resp) {
+                          //     if (resp.data.success) {
+                          //       // console.log(resp.data);
+                          //       successNotify('Coupon Applied Successfully');
+                          //       setCouponAmount(resp.data.data.coupon_discount);
+                          //       setCouponId(resp.data.data.coupon_id);
+                          //     } else {
+                          //       errorNotify(resp.data.message);
+                          //     }
+                          //   })
+                          //   .catch((err) => {
+                          //     console.log(err);
+                          //   });
+                          infoNotify('This feature is upcoming');
                         }
                       })
                     }}>
-                      <img src={tag_icon} alt="coupon" width='30' /><br />
-                      Coupon
+                      <svg viewBox="64 64 896 896" focusable="false" data-icon="pause" width="1.5em" height="1.9em" fill="currentColor" aria-hidden="true"><path d="M304 176h80v672h-80zm408 0h-64c-4.4 0-8 3.6-8 8v656c0 4.4 3.6 8 8 8h64c4.4 0 8-3.6 8-8V184c0-4.4-3.6-8-8-8z"></path></svg>
+                      <br />
+                      Hold Order
                     </button>
                   </Col>
                   <Col md={11}>
