@@ -188,7 +188,6 @@ width: 100%;
 .cart_section h2{
     border-top: 1px solid rgb(221, 221, 221);
     border-bottom: 1px solid rgb(221, 221, 221);
-    margin-left: -16px;
 }
 
 .cart_totals {
@@ -199,6 +198,8 @@ width: 100%;
     background-color: white;
     position: fixed;
     bottom: 0;
+    padding-left: 0.5rem;
+    padding-right: 1rem;
 }
 .cart_totals h6, .cart_totals p{
     margin-bottom: 0.3rem;
@@ -206,7 +207,8 @@ width: 100%;
 .discount_card{
     background-color: rgb(241, 238, 238);
     padding: 6% 12%;
-    width: 9rem;
+    width: 8.5rem;
+    margin-top: 0.6rem;
 }
 .discount_card:hover{
     background-color: rgb(238, 241, 241);
@@ -223,9 +225,7 @@ width: 100%;
     border-radius: 6px;
     padding: 0;
     text-decoration: none;
-    width: 95%;
-    /* margin-left: 1rem; */
-    margin-right: 1rem;
+    width: 100%;
 }
 .cart_order_btn i{
     font-size: 1rem;

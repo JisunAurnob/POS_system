@@ -25,12 +25,23 @@ const Orders = () => {
   const [search, setSearch] = useState();
   const [orderDetails, setOrderDetails] = useState();
   const dispatch = useDispatch();
+  const [query, setQuery] = useState('');
+  useEffect(() => {
+      if (search) {
+        setQuery("?search=" + search);
+      }
+      else {
+        setQuery('');
+      }
+      // console.log(query);
+    }, [search]);
   useEffect(() => {
     ref.current.continuousStart();
+    // console.log(query);
     // if(isLoggedIn){
-    axios.get("pos/order-list")
+    axios.get("pos/order-list"+query)
       .then(resp => {
-        console.log(resp.data);
+        // console.log(resp.data);
         ref.current.complete();
         if (resp.data.success == true) {
           setOrders(resp.data.data);
@@ -55,8 +66,8 @@ const Orders = () => {
         navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
       });
     // }
-  }, []);
-  console.log(orders);
+  }, [query]);
+  // console.log(orders);
   return (
     <div>
       <LoadingBar
@@ -70,7 +81,7 @@ const Orders = () => {
               <Row className="justify-content-center mt-3">
                 <Col md={8}>
                   <div className="input-group ms-2 mt-2">
-                    <input type="search" className="form-control search_input" placeholder="Search Product.." aria-label="Recipient's username" aria-describedby="basic-addon2"
+                    <input type="search" className="form-control search_input" placeholder="Enter Order Number To Search.." aria-label="Recipient's username" aria-describedby="basic-addon2"
                       value={search}
                       onChange={(e) => setSearch(e.target.value)} />
                     <span className="input-group-text search_input_icon" id="basic-addon2"><img src={search_icon} alt="search icon" /></span>
@@ -164,8 +175,12 @@ const Orders = () => {
                     <h4>Status:</h4>
                   </Col>
                   <Col md={4}>
-                    <h4 className="text-end pe-3">{orderDetails.status==='pending' && (<span className="text-warning">Pending</span>)}
-                    {orderDetails.status==='confirm' ? (<span className="text-success">Pending</span>) : (orderDetails.status)}
+                    <h4 className="text-end pe-3">
+                    {orderDetails.status==='confirm' ? 
+                    (<span className="text-success">Confirm</span>) : 
+                    (orderDetails.status!=='pending' && orderDetails.status!=='cancel' ?
+                    <span className="text-info">{orderDetails.status}</span> : 
+                    (orderDetails.status==='cancel' ? <span className="text-danger">Cancel</span> : orderDetails.status==='pending' && <span className="text-warning">Pending</span> ))}
                     </h4>
                   </Col>
                   <Col md={8}>

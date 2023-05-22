@@ -17,13 +17,13 @@
     height: 100vh;
     overflow: auto;
     text-align: center;
-    width: 7rem;
+    width: 6rem;
     position: absolute;
     left: 0;
     top: 0;
 }
 .body_container {
-    margin-left: 7rem;
+    margin-left: 6rem;
     font-size: 18px;
     
     /* overflow-y: scroll;
@@ -34,7 +34,7 @@
     box-sizing: content-box;
     color: var(--pos-font-color);
     display: grid;
-    padding: 14% 0;
+    padding: 10% 0;
     text-decoration: none;
     margin: 0.75rem;
 }

@@ -213,7 +213,7 @@ const Home = () => {
     if (!categories) {
       axios.get("get-categories")
         .then(resp => {
-          setCategories(resp.data.categories[0]);
+          setCategories(resp.data.categories);
         });
     }
     // console.log('render check');
@@ -240,7 +240,7 @@ const Home = () => {
     if (searchCustomer) {
       axios.get("pos/customer-list?customerSearchInput=" + searchCustomer)
         .then(resp => {
-          console.log(resp.data);
+          // console.log(resp.data);
           if (resp.data.data.length > 0) {
             setCustomers(resp.data.data);
           }
@@ -263,7 +263,7 @@ const Home = () => {
       });
     // console.log('customerAddress load function hit');
   }
-  console.log(selectedCustomerAddresses);
+  // console.log(selectedCustomerAddresses);
   useEffect(() => {
     let radioHtml = '<b className="mb-2 mt-2 col-12">Select Address</b> <br>';
     if (selectedCustomerAddresses) {
@@ -285,13 +285,13 @@ const Home = () => {
         <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">Zip: `+ item.zip + `</p>
         </address>
         </label>
-        <input type="hidden" id="address_name" value="`+ item.name + `" required>
-        <input type="hidden" id="address" value="`+ item.address + `" required>
-        <input type="hidden" id="address_phone" value="`+ item.phone + `" required>
-        <input type="hidden" id="address_email" value="`+ item.email + `" required>
-        <input type="hidden" id="shipping_id" value="`+ item.shipping_state.id + `" required>
-        <input type="hidden" id="zip" value="`+ item.zip + `" required>
-        <input type="hidden" id="area" value="`+ item.area + `" required>
+        <input type="hidden" id="address_name`+ item.id + `" value="`+ item.name + `" required>
+        <input type="hidden" id="address`+ item.id + `" value="`+ item.address + `" required>
+        <input type="hidden" id="address_phone`+ item.id + `" value="`+ item.phone + `" required>
+        <input type="hidden" id="address_email`+ item.id + `" value="`+ item.email + `" required>
+        <input type="hidden" id="shipping_id`+ item.id + `" value="`+ item.shipping_state.id + `" required>
+        <input type="hidden" id="zip`+ item.id + `" value="`+ item.zip + `" required>
+        <input type="hidden" id="area`+ item.id + `" value="`+ item.area + `" required>
       </div>`;
         });
         
@@ -314,6 +314,7 @@ const Home = () => {
     setAddressHtml(radioHtml)
     // console.log('changes in the radio html' + radioHtml);
   }, [selectedCustomerAddresses]);
+  // console.log(city);
   // console.log(selectedCustomerAddresses);
   const [errorList, setError] = useState();
   const [username, setUsername] = useState("");
@@ -332,7 +333,7 @@ const Home = () => {
   });
   useEffect(() => {
     // console.log(city);
-    if (city == 'inside_dhaka') {
+    if (city === 'inside_dhaka') {
       axios.get("ec/area-by-district/dhaka")
         .then(resp => {
           // console.log(resp.data.data);
@@ -341,7 +342,7 @@ const Home = () => {
           console.log(err);
         });
     }
-    else if (city == 'outside_dhaka') {
+    else if (city === 'outside_dhaka') {
       axios.get("ec/get-cities")
         .then(resp => {
           // console.log(resp.data.data);
@@ -365,10 +366,10 @@ const Home = () => {
       area: area,
       shipping_id: areaID
     };
-    if (city == 'inside_dhaka') {
+    if (city === 'inside_dhaka') {
       obj.shipping_id = 14;
     }
-    else if (city == 'outside_dhaka') {
+    else if (city === 'outside_dhaka') {
       obj.shipping_id = 15;
     }
     // console.log(props.customer_id);
@@ -377,7 +378,7 @@ const Home = () => {
       .post("pos/register-customer", obj)
       .then(function (resp) {
 
-        console.log(resp.data);
+        // console.log(resp.data);
         var data = resp.data;
         // console.log(data);
         if (data.success == false) {
@@ -404,6 +405,7 @@ const Home = () => {
           setZip('');
           setArea('');
           setAreaId('');
+          setCity('');
           setError(null);
           setAddCustomerModal(false);
         }
@@ -414,12 +416,11 @@ const Home = () => {
       });
 
     // console.log('errorlist');
-    console.log(errorList);
+    // console.log(errorList);
     event.preventDefault();
   };
 
   const handleSubmit = (event) => {
-
     var obj = {
       name: username,
       email: email,
@@ -432,10 +433,10 @@ const Home = () => {
       shipping_id: 0,
       is_default: defaultValue
     };
-    if (city == 'inside_dhaka') {
+    if (city === 'inside_dhaka') {
       obj.shipping_id = 14;
     }
-    else if (city == 'outside_dhaka') {
+    else if (city === 'outside_dhaka') {
       obj.shipping_id = 15;
     }
     // console.log(props.customer_id);
@@ -444,7 +445,7 @@ const Home = () => {
       .post("pos/add-customer-address/" + selectedCustomer.id, obj)
       .then(function (resp) {
         var data = resp.data;
-        console.log(data);
+        // console.log(data);
         if (data.success == false) {
 
           setError(data.message);
@@ -468,6 +469,7 @@ const Home = () => {
           setArea('');
           setAreaId('');
           setError(null);
+          setCity('');
           customerAddress(selectedCustomer.id);
           setAddAddressModal(false);
         }
@@ -479,12 +481,12 @@ const Home = () => {
         setError(err.response.data.errors)
       });
 
-    console.log(errorList);
+    // console.log(errorList);
     event.preventDefault();
   };
 
   const checkOutSubmit = () => {
-    // event.preventDefault();
+    ref.current.continuousStart();
     if (!selectedCustomerAddressesId) {
       Swal.fire('Select Customer Address First')
     }
@@ -493,10 +495,10 @@ const Home = () => {
     }
     else {
       var customer_city = 0;
-      if (city == "inside_dhaka") {
+      if (city === "inside_dhaka") {
         customer_city = 14;
       }
-      else if (city == "outside_dhaka") {
+      else if (city === "outside_dhaka") {
         customer_city = 15;
       }
       var customer_details = {
@@ -559,19 +561,24 @@ const Home = () => {
       // console.log(order);
       if (paymentMethod === "ssl") {
         // console.log(order);
-        axios.post('order', order)
+        axios.post('pos/order', order)
           .then(resp => {
             console.log(resp.data);
             if (resp.data.success) {
+            ref.current.complete();
               emptyCart();
-              window.location.reload();
+              setTimeout(() => {
+                window.location.reload();
+                }, 1200);
             }
             else {
+              ref.current.complete();
               setError(resp.data.message);
             }
             // window.location.replace(resp.gatewayPageUrl);
           })
           .catch(err => {
+            ref.current.complete();
             console.log(err);
           });
 
@@ -583,15 +590,18 @@ const Home = () => {
             console.log(resp.data);
             var data = resp.data;
             if (resp.data.success) {
+              ref.current.complete();
               Swal.fire({
                 position: 'top-end',
                 icon: 'success',
                 title: data.message,
                 showConfirmButton: false,
-                timer: 1500
+                timer: 1200
               });
               emptyCart();
+              setTimeout(() => {
               window.location.reload();
+              }, 1200);
 
             }
             else {
@@ -601,12 +611,14 @@ const Home = () => {
                 title: 'Something went wrong please try again later',
                 showConfirmButton: true
               });
+              ref.current.complete();
               setError(resp.data.message);
             }
 
           })
           .catch((err) => {
             console.log(err);
+            ref.current.complete();
             if (err) {
               setError("There is something wrong in the order!!!");
             }
@@ -625,7 +637,7 @@ const Home = () => {
         />
       <Layout>
         <Row>
-          <Col md={8} className="ps-0">
+          <Col lg={7} xxl={8} className="ps-0 pe-0">
             <div className="products_tab">
               <h2 className="p-2">Categories</h2>
               <div className="category_div">
@@ -640,13 +652,13 @@ const Home = () => {
                 </button>
                 {categories &&
                   (
-                    categories.categories.map((category, index) => {
+                    categories.map((category, index) => {
                       return (
                         <button key={index} className={cateID === category.id ? "category_card active" : "category_card"} onClick={() => {
                           setCateID(category.id);
                         }}>
                           <span role="img" aria-label="database" className="catIcon">
-                            <img className="catIcon" src={axios.defaults.baseURL.slice(0, -4) + "frontend/images/category_images/" + category.category_image} alt={category.category_name}
+                            <img className="catIcon" src={category.category_image} alt={category.category_name}
                               width="40" height="40" />
                           </span>
                           <p className="m-0" title={category.category_name}>{category.category_name}</p>
@@ -748,7 +760,7 @@ const Home = () => {
               </Row>
             </div>
           </Col>
-          <Col md={4} className="ps-0">
+          <Col lg={5} xxl={4} className="ps-0">
             <div className="cart_section">
               <div className="customer_section row">
                 {selectedCustomer ? (
@@ -791,14 +803,15 @@ const Home = () => {
                               }
                               else {
                                 setCustomerAddressId(Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value);
-                                setUsername(Swal.getHtmlContainer().querySelector("#address_name").value);
-                                setContact(Swal.getHtmlContainer().querySelector("#address_phone").value);
-                                setEmail(Swal.getHtmlContainer().querySelector("#address_email").value);
-                                setCity(Swal.getHtmlContainer().querySelector("#shipping_id").value);
-                                setAddress(Swal.getHtmlContainer().querySelector("#address").value);
-                                setZip(Swal.getHtmlContainer().querySelector("#zip").value);
-                                setArea(Swal.getHtmlContainer().querySelector("#area").value);
+                                setUsername(Swal.getHtmlContainer().querySelector("#address_name"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setContact(Swal.getHtmlContainer().querySelector("#address_phone"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setEmail(Swal.getHtmlContainer().querySelector("#address_email"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setCity(Swal.getHtmlContainer().querySelector("#shipping_id"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value===14 ? 'inside_dhaka' : 'outside_dhaka');
+                                setAddress(Swal.getHtmlContainer().querySelector("#address"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setZip(Swal.getHtmlContainer().querySelector("#zip"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setArea(Swal.getHtmlContainer().querySelector("#area"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
                               }
+                              // console.log(Swal.getHtmlContainer().querySelector("#shipping_id"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
                             }
                             else if (result.isDenied) {
                               setAddAddressModal(true);
@@ -964,7 +977,7 @@ const Home = () => {
                   </>
                 ) : (
                   <>
-                    <div className="col-8">
+                    <div className="col-8 ps-4">
                       <input type="search" className="form-control" placeholder="Search customer name phone or email" value={searchCustomer} onChange={(e) => setSearchCustomer(e.target.value)} />
 
                       {searchCustomer && customers && (
@@ -999,7 +1012,7 @@ const Home = () => {
 
                     </div>
                     <div className="col-4">
-                      <button className="col-5 btn customer_add_btn" title="Add Customer" onClick={() => {
+                      <button className="col-7 col-xl-5 btn customer_add_btn" title="Add Customer" onClick={() => {
                         setAddCustomerModal(!addCustomerModal);
                       }}>
                         <i>
@@ -1049,7 +1062,7 @@ const Home = () => {
                               <label htmlFor="phone" className="required">
                                 Phone:
                               </label>{" "}
-                              <input id="phone" type="text" name="phone" value={contact} onChange={(e) => setContact(e.target.value)} className="form-control square" />
+                              <input id="phone" type="text" name="phone" placeholder="Enter Customer Phone Number" value={contact} onChange={(e) => setContact(e.target.value)} className="form-control square" />
                               {errorList && (<span className='text-danger'>{errorList.customer_contact && errorList.customer_contact[0]}</span>)}
                             </div>{" "}
                             <div className="form-group mb-2">
@@ -1064,6 +1077,8 @@ const Home = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Password For The Customer"
                                 className="form-control square"
+                                style={{backgroundColor:'#e1e1e1'}}
+                                readOnly
                               />
                               <span className='text-danger'>{errorList && errorList.customer_password && errorList.customer_password[0]}</span>
                             </div>{" "}
@@ -1093,7 +1108,7 @@ const Home = () => {
                                 // <SelectSearch options={DhakaShippingZoneData} value={area} search={true} name="area" placeholder="Select Area" onChange={(selectedValue,selectedOption) => {setArea(selectedOption.name);console.log(selectedOption);}} />
                                 // </div>
                                 shippingZones && (
-                                  <div className="form-group mb-2">
+                                  <div className="form-group mb-2" id="area">
                                     <select style={{ height: '47px' }} className="form-control address-control-item address-control-item-required"
                                       name="area"
                                       required={area === "" ? true : false}
@@ -1116,7 +1131,7 @@ const Home = () => {
                               )}
                               {city === 'outside_dhaka' && (
                                 shippingZones && (
-                                  <div className="form-group">
+                                  <div className="form-group" id="area">
                                     <SelectSearch options={shippingZones} value={area} search={true} name="area" placeholder="Select Area" onChange={(selectedValue) => { setArea(selectedValue); }} />
                                   </div>
                                 )
@@ -1183,12 +1198,12 @@ const Home = () => {
                         <div className="col-1 center_col">
                           {itemExpend === item.id ? (
 
-                            <i style={{ color: '#09b3d4' }}>
+                            <i style={{ color: '#09b3d4' }} className="ps-2">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-up" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M7.646 4.646a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1-.708.708L8 5.707l-5.646 5.647a.5.5 0 0 1-.708-.708l6-6z" />
                               </svg></i>
                           ) : (
-                            <i style={{ color: '#09b3d4' }}>
+                            <i style={{ color: '#09b3d4' }} className="ps-2">
                               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-chevron-down" viewBox="0 0 16 16">
                                 <path fillRule="evenodd" d="M1.646 4.646a.5.5 0 0 1 .708 0L8 10.293l5.646-5.647a.5.5 0 0 1 .708.708l-6 6a.5.5 0 0 1-.708 0l-6-6a.5.5 0 0 1 0-.708z" />
                               </svg></i>
@@ -1277,19 +1292,19 @@ const Home = () => {
                     <h6>Subtotal:</h6>
                   </Col>
                   <Col md={4}>
-                    <p className="text-end pe-3">{Number(subtotal.toFixed(2))}৳</p>
+                    <p className="text-end">{Number(subtotal.toFixed(2))}৳</p>
                   </Col>
                   <Col md={8}>
                     <h6>Tax:</h6>
                   </Col>
                   <Col md={4}>
-                    <p className="text-end pe-3">{tax > 0 ? Number(tax.toFixed(2)) : '0.00'}৳</p>
+                    <p className="text-end">{tax > 0 ? Number(tax.toFixed(2)) : '0.00'}৳</p>
                   </Col>
                   <Col md={8}>
                     <h6>Discount:</h6>
                   </Col>
                   <Col md={4}>
-                    <p className="text-end pe-3">
+                    <p className="text-end">
                       {discount > 0 && (
 
                         <button data-title="Remove" className="btn pt-0" onClick={() => {
@@ -1309,7 +1324,7 @@ const Home = () => {
                     <h6>Applied Coupon(s):</h6>
                   </Col>
                   <Col md={4}>
-                    <p className="text-end pe-3">
+                    <p className="text-end">
                       {couponAmount > 0 && (
 
                         <button data-title="Remove" className="btn pt-0" onClick={() => {
@@ -1329,9 +1344,9 @@ const Home = () => {
                     <h6>Shipping Charge:</h6>
                   </Col>
                   <Col md={4}>
-                    <p className="text-end pe-3">{Number(shipingCost)}৳</p>
+                    <p className="text-end">{Number(shipingCost)}৳</p>
                   </Col>
-                  <Col md={4}>
+                  <Col lg={6} xl={4}>
                     <button className="btn discount_card" onClick={() => {
                       Swal.fire({
                         title: 'Enter Coupon Code',
@@ -1341,11 +1356,12 @@ const Home = () => {
                         confirmButtonText: 'Apply',
                       }).then((result) => {
                         if (result.isConfirmed) {
+                          console.log('coupon applied');
                           axios.post("pos/coupon-apply/",
                             { coupon: result.value, sub_total: subtotal })
                             .then(function (resp) {
+                              console.log(resp.data);
                               if (resp.data.success) {
-                                // console.log(resp.data);
                                 successNotify('Coupon Applied Successfully');
                                 setCouponAmount(resp.data.data.coupon_discount);
                                 setCouponId(resp.data.data.coupon_id);
@@ -1363,7 +1379,7 @@ const Home = () => {
                       Coupon
                     </button>
                   </Col>
-                  <Col md={4}>
+                  <Col lg={6} xl={4}>
                     <button className="btn discount_card" onClick={() => {
                       Swal.fire({
                         title: 'Apply Discount',
@@ -1409,7 +1425,7 @@ const Home = () => {
                       Discount
                     </button>
                   </Col>
-                  <Col md={4}>
+                  <Col lg={6} xl={4}>
                     <button className="btn discount_card" onClick={() => {
                       Swal.fire({
                         title: 'Enter Order Comment',
@@ -1444,7 +1460,7 @@ const Home = () => {
                       Hold Order
                     </button>
                   </Col>
-                  <Col md={11}>
+                  <Col md={12}>
                     <select className="form-control ms-1 mt-3" name="shipping_city" title="Select Shipping Zone" required
                       value={city}
                       onChange={(e) => { setCity(e.target.value); }}>
@@ -1453,7 +1469,7 @@ const Home = () => {
                       <option value="outside_dhaka">Outside Dhaka{'- ' + outsideShiCharge}</option>
                     </select>
                   </Col>
-                  <Col md={11}>
+                  <Col md={12}>
                     <select className="form-control ms-1 mt-3" name="payment_method" title="Payment Method" required
                       value={paymentMethod}
                       onChange={(e) => { setPaymentMethod(e.target.value); }}>
@@ -1464,7 +1480,7 @@ const Home = () => {
                       <option value="bkash-merchant">bKash Merchant</option>
                     </select>
                   </Col>
-                  <Col md={11}>
+                  <Col md={12}>
                     <div className="ms-1">
                       <label className="pt-2 mb-1">Order Notes </label>
                       <textarea className="form-control" placeholder="Oder Notes" name="order_note" value={orderNote}

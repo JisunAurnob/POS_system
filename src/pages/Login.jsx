@@ -55,13 +55,15 @@ const Login = () => {
         if (data.success === false) {
           ref.current.complete();
           setError(resp.data.message);
-          Swal.fire({
-            position: 'center',
-            icon: 'error',
-            title: resp.data.message,
-            showConfirmButton: false,
-            timer: 2000
-          })
+          // if(errorList.admin_input[0]===undefined){
+          //   Swal.fire({
+          //     position: 'center',
+          //     icon: 'error',
+          //     title: resp.data.message,
+          //     showConfirmButton: false,
+          //     timer: 2000
+          //   })
+          // }
           localStorage.removeItem("posUser");
             dispatch(setUserData(null));
         }
@@ -85,7 +87,7 @@ const Login = () => {
       });
     e.preventDefault();
   };
-
+console.log(errorList);
     return (
       <div>
         <LoadingBar
@@ -100,13 +102,14 @@ const Login = () => {
               POS
             </div>
             <form className="p-3 mt-3" onSubmit={(e) => { loginSubmit(e); }}>
+              <span className="text-danger mb-2">{errorList && errorList.admin_input===undefined && errorList }</span>
               <div className="form-field d-flex align-items-center">
                 <span className="far fa-user"></span>
                 <input type="text" name="userName" id="userName" placeholder="Email"
                   value={username}
                   onChange={(e) => setUserName(e.target.value)} autoComplete={true} />
               </div>
-                  {errorList && (<><span className='text-danger'>{errorList.user_input[0]}</span><br/><br/></>)}
+                  {errorList && errorList.admin_input!==undefined && (<><span className='text-danger'>{errorList.admin_input[0]}</span><br/><br/></>)}
               <div className="form-field d-flex align-items-center">
                 <span className="fas fa-key"></span>
                 <input type="password" name="password" id="pwd" placeholder="Password"
@@ -114,7 +117,7 @@ const Login = () => {
                   onChange={(e) => setPassword(e.target.value)}
                   autoComplete={'false'} required />
               </div>
-              {errorList && (<><span className='text-danger'>{errorList.password[0]}</span><br/></>)}
+              {errorList && errorList.password!==undefined && (<><span className='text-danger'>{errorList.password[0]}</span><br/></>)}
               <button className="btn mt-3">Login</button>
             </form>
             {/* <div className="text-center fs-6">
