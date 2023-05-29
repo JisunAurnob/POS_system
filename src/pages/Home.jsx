@@ -81,7 +81,7 @@ const Home = () => {
   const [outsideShiCharge, setOutsideShiCharge] = useState("");
   const [city, setCity] = useState("inside_dhaka");
   const [shipingCost, setShipingCost] = useState("0.00");
-  const [shipingMethod, setShipingMethod] = useState();
+  const [bkashTId, setBkashTId] = useState();
   let [orderNote, setOrderNote] = useState("");
   let [paymentMethod, setPaymentMethod] = useState("");
   const { UserData } = useSelector((state) => state.UserData);
@@ -518,7 +518,9 @@ const Home = () => {
         customer_zip: zip,
         shipping_area: area,
       };
-
+      if(paymentMethod!=='bkash-merchant'){
+        setBkashTId(null);
+      }
       if (!customer_details.customer_email) {
         customer_details.customer_email = "";
       }
@@ -556,6 +558,7 @@ const Home = () => {
         shipping_cost: shipingCost,
         vat: tax,
         coupon_id: couponId,
+        bKash_tran_id: bkashTId,
         order_from: 'pos'
       };
       // console.log(order);
@@ -1346,7 +1349,7 @@ const Home = () => {
                   <Col md={4}>
                     <p className="text-end">{Number(shipingCost)}৳</p>
                   </Col>
-                  <Col lg={6} xl={4}>
+                  {/* <Col lg={6} xl={4}>
                     <button className="btn discount_card" onClick={() => {
                       Swal.fire({
                         title: 'Enter Coupon Code',
@@ -1459,7 +1462,7 @@ const Home = () => {
                       <br />
                       Hold Order
                     </button>
-                  </Col>
+                  </Col> */}
                   <Col md={12}>
                     <select className="form-control ms-1 mt-3" name="shipping_city" title="Select Shipping Zone" required
                       value={city}
@@ -1472,7 +1475,7 @@ const Home = () => {
                   <Col md={12}>
                     <select className="form-control ms-1 mt-3" name="payment_method" title="Payment Method" required
                       value={paymentMethod}
-                      onChange={(e) => { setPaymentMethod(e.target.value); }}>
+                      onChange={(e) => { setPaymentMethod(e.target.value); setBkashTId(null); }}>
                       <option selected >Payment Method
                       </option>
                       <option value="cod">Cash On Delivery</option>
@@ -1480,6 +1483,15 @@ const Home = () => {
                       <option value="bkash-merchant">bKash Merchant</option>
                     </select>
                   </Col>
+                  {paymentMethod && paymentMethod==='bkash-merchant' && (
+                    <Col md={12}>
+                    <div className="ms-1">
+                      <label className="pt-2 mb-1">bKash Trans. Id</label>
+                      <input type="text" className="form-control" placeholder="If customer already paid please insert the transaction id" name="bKash_tran_id" value={bkashTId}
+                        onChange={(e) => { setBkashTId(e.target.value); }} />
+                    </div>
+                  </Col>
+                  )}
                   <Col md={12}>
                     <div className="ms-1">
                       <label className="pt-2 mb-1">Order Notes </label>
