@@ -380,7 +380,7 @@ const Home = () => {
 
         // console.log(resp.data);
         var data = resp.data;
-        // console.log(data);
+        console.log(data);
         if (data.success == false) {
 
           setError(data.message);
@@ -396,16 +396,9 @@ const Home = () => {
             showConfirmButton: true,
           });
           // navigate("/customer/address");
-
-          setUsername('');
-          setPassword('');
-          setEmail('');
-          setContact('');
-          setAddress('');
-          setZip('');
-          setArea('');
-          setAreaId('');
-          setCity('');
+          setCustomer(data.data.customer[0]);
+          // setSelectedCustomerAddress([data.data.customer[1]]);
+          setCustomerAddressId(data.data.customer[1].id);
           setError(null);
           setAddCustomerModal(false);
         }
@@ -882,8 +875,8 @@ const Home = () => {
                                   onChange={(e) => { setCity(e.target.value); }}
                                 >
                                   {/* <option>Your City</option> */}
-                                  <option value={'inside_dhaka'}>Inside Dhaka {insideShiCharge}</option>
-                                  <option value={'outside_dhaka'}>Outside Dhaka {outsideShiCharge}</option>
+                                  <option value={'inside_dhaka'}>Inside Dhaka</option>
+                                  <option value={'outside_dhaka'}>Outside Dhaka</option>
                                 </select>
                                 {errorList && (<span className='text-danger'>{errorList.city}</span>)}
                               </div>{" "}
@@ -1097,8 +1090,8 @@ const Home = () => {
                                 onChange={(e) => { setCity(e.target.value); }}
                               >
                                 {/* <option>Your City</option> */}
-                                <option value={'inside_dhaka'}>Inside Dhaka {insideShiCharge}</option>
-                                <option value={'outside_dhaka'}>Outside Dhaka {outsideShiCharge}</option>
+                                <option value={'inside_dhaka'}>Inside Dhaka</option>
+                                <option value={'outside_dhaka'}>Outside Dhaka</option>
                               </select>
                               {errorList && (<span className='text-danger'>{errorList.city}</span>)}
                             </div>{" "}
@@ -1500,7 +1493,7 @@ const Home = () => {
                     </div>
                   </Col>
                 </Row><br />
-                <button className="btn cart_order_btn" onClick={() => {
+                <button className="btn cart_order_btn mb-2" onClick={() => {
                   checkOutSubmit();
                 }}>
                   <p className="text-start ps-4 pt-2">Proceed To Order

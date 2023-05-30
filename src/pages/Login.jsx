@@ -2,7 +2,7 @@ import React, { useRef } from "react";
 import { useEffect } from "react";
 import { useState } from "react";
 import Layout from "../layouts/Layout";
-import PosIcon from "../assets/images/pos_icon.png"
+import PosIcon from "../assets/images/point-of-sale.png"
 import '../assets/css/login.css';
 import { useLocation, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
@@ -51,7 +51,7 @@ const Login = () => {
       .post("pos/login", obj)
       .then(function (resp) {
         var data = resp.data;
-        console.log(data);
+        // console.log(data);
         if (data.success === false) {
           ref.current.complete();
           setError(resp.data.message);
@@ -96,18 +96,18 @@ console.log(errorList);
         />
           <div className="wrapper">
             <div className="logo">
-              <img src={PosIcon} alt="" />
+              <img src={PosIcon} alt="" className="" />
             </div>
             <div className="text-center mt-4 name">
-              POS
+              Point of Sale
             </div>
-            <form className="p-3 mt-3" onSubmit={(e) => { loginSubmit(e); }}>
+            <form className="p-3 mt-3" onSubmit={(e) => { loginSubmit(e); }} autoComplete="none">
               <span className="text-danger mb-2">{errorList && errorList.admin_input===undefined && errorList }</span>
               <div className="form-field d-flex align-items-center">
                 <span className="far fa-user"></span>
                 <input type="text" name="userName" id="userName" placeholder="Email"
                   value={username}
-                  onChange={(e) => setUserName(e.target.value)} autoComplete={true} />
+                  onChange={(e) => setUserName(e.target.value)} autoComplete="none" />
               </div>
                   {errorList && errorList.admin_input!==undefined && (<><span className='text-danger'>{errorList.admin_input[0]}</span><br/><br/></>)}
               <div className="form-field d-flex align-items-center">
@@ -115,7 +115,7 @@ console.log(errorList);
                 <input type="password" name="password" id="pwd" placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  autoComplete={'false'} required />
+                  autoComplete="none" required />
               </div>
               {errorList && errorList.password!==undefined && (<><span className='text-danger'>{errorList.password[0]}</span><br/></>)}
               <button className="btn mt-3">Login</button>
