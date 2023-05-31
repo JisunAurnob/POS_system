@@ -84,6 +84,7 @@ const Home = () => {
   const [bkashTId, setBkashTId] = useState();
   let [orderNote, setOrderNote] = useState("");
   let [paymentMethod, setPaymentMethod] = useState("");
+  const [isDisabled, setDisable] = useState(false);
   const { UserData } = useSelector((state) => state.UserData);
 
   const search = useLocation().search;
@@ -171,6 +172,7 @@ const Home = () => {
           }
           else{
             setProducts(resp.data.data);
+            console.log(resp.data.data);
           }
         });
     }
@@ -568,6 +570,12 @@ const Home = () => {
                 }, 1200);
             }
             else {
+              Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                title: resp.data.message ?? 'Something went wrong please try again later',
+                showConfirmButton: true
+              });
               ref.current.complete();
               setError(resp.data.message);
             }
@@ -575,6 +583,12 @@ const Home = () => {
           })
           .catch(err => {
             ref.current.complete();
+            Swal.fire({
+              position: 'center',
+              icon: 'warning',
+              title: 'Something went wrong please try again later',
+              showConfirmButton: true
+            });
             console.log(err);
           });
 
@@ -604,7 +618,7 @@ const Home = () => {
               Swal.fire({
                 position: 'center',
                 icon: 'warning',
-                title: 'Something went wrong please try again later',
+                title: resp.data.message ?? 'Something went wrong please try again later',
                 showConfirmButton: true
               });
               ref.current.complete();
@@ -964,6 +978,7 @@ const Home = () => {
                       <button data-title="Remove" className="btn" onClick={() => {
                         setCustomer(null);
                         setCustomerAddressId(null);
+                        setDisable(false);
                       }}>
                         <i style={{ color: 'red' }}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16"><path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5Zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6Z"></path><path d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1ZM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118ZM2.5 3h11V2h-11v1Z"></path></svg>
@@ -1493,7 +1508,10 @@ const Home = () => {
                     </div>
                   </Col>
                 </Row><br />
-                <button className="btn cart_order_btn mb-2" onClick={() => {
+                <button className="btn cart_order_btn mb-2" disabled={isDisabled} onClick={() => {
+                  if (selectedCustomerAddressesId && city && paymentMethod) {
+                    setDisable(true);
+                  }
                   checkOutSubmit();
                 }}>
                   <p className="text-start ps-4 pt-2">Proceed To Order
