@@ -55,6 +55,7 @@ const Home = () => {
     theme: "colored",
     // progressClassName: "fancy-progress-bar",
   });
+  const { isEmpty } = useCart();
   const ref = useRef(null);
   const dispatch = useDispatch();
   const [selectedCustomerAddresses, setSelectedCustomerAddress] = useState();
@@ -92,12 +93,14 @@ const Home = () => {
   
 
   useEffect(() => {
+    // console.log(UserData);
     ref.current.continuousStart();
     if (UserData || queryParam.get('token')) {
       console.log('pos verify');
       var token = queryParam.get('token') !== null ? queryParam.get('token') : (UserData ? UserData.token : '');
         axios.get("pos/verify-token/" + token)
         .then(resp => {
+          console.log(resp.data);
           ref.current.complete();
           localStorage.removeItem("posUser");
           dispatch(setUserData(null))
@@ -109,10 +112,12 @@ const Home = () => {
             //   showConfirmButton: false,
             //   timer: 1000
             // });
+            ref.current.complete();
             localStorage.setItem("posUser", JSON.stringify(resp.data.data));
             dispatch(setUserData(resp.data.data));
           }
           else if(resp.data.success==false){
+            ref.current.complete();
               Swal.fire({
                 position: 'center',
                 icon: 'warning',
@@ -131,6 +136,11 @@ const Home = () => {
           navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
         });
       
+    }
+    else{
+      localStorage.removeItem("posUser");
+      dispatch(setUserData(null));
+      navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
     }
   }, [queryParam.get('token')]);
   // console.log(UserData);
@@ -168,11 +178,12 @@ const Home = () => {
       axios.get("pos/products" + query)
         .then(resp => {
           if(resp.data.success===false && queryParam.get('token') === null){
-            navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+            // navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+            setProducts(null);
           }
           else{
             setProducts(resp.data.data);
-            console.log(resp.data.data);
+            // console.log(resp.data.data);
           }
         });
     }
@@ -180,7 +191,8 @@ const Home = () => {
       axios.get("pos/products" + query)
         .then(resp => {
           if(resp.data.success===false && queryParam.get('token') === null){
-            navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+            // navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+            setProducts(null);
           }
           else{
           setProducts(resp.data.data);
@@ -205,7 +217,7 @@ const Home = () => {
             navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
           }
           else{
-          setProducts(resp.data.data.data);
+          setProducts(resp.data.data);
           }
         });
     }
@@ -482,7 +494,10 @@ const Home = () => {
 
   const checkOutSubmit = () => {
     ref.current.continuousStart();
-    if (!selectedCustomerAddressesId) {
+    if(isEmpty){
+      Swal.fire('Add Products First')
+    }
+    else if (!selectedCustomerAddressesId) {
       Swal.fire('Select Customer Address First')
     }
     else if (!city || !paymentMethod) {
@@ -1182,7 +1197,7 @@ const Home = () => {
                   </div>{" "} */}
                             <div className="col-md-12">
                               <button type="submit" className="btn customer_add_btn">
-                                Save address
+                                Register
                               </button>&nbsp;
                               <button type="reset" className="btn btn-light" onClick={() => setAddCustomerModal(!addCustomerModal)}>Cancel</button>
                             </div>

@@ -41,7 +41,7 @@ const Orders = () => {
     // if(isLoggedIn){
     axios.get("pos/order-list"+query)
       .then(resp => {
-        // console.log(resp.data);
+        console.log(resp.data);
         ref.current.complete();
         if (resp.data.success == true) {
           setOrders(resp.data.data);
@@ -51,22 +51,24 @@ const Orders = () => {
             position: 'center',
             icon: 'warning',
             title: resp.data.message,
-            showConfirmButton: false,
-            timer: 1000
+            showConfirmButton: true,
+            // timer: 1000
           })
-          localStorage.removeItem("posUser");
-          dispatch(setUserData(null))
-          navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+          if(resp.data.message=="Unauthorized"){
+            localStorage.removeItem("posUser");
+            dispatch(setUserData(null))
+            navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+          }
         }
       })
       .catch((err) => {
         console.log(err);
-        localStorage.removeItem("posUser");
-        dispatch(setUserData(null))
-        navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+        // localStorage.removeItem("posUser");
+        // dispatch(setUserData(null))
+        // navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
       });
     // }
-  }, [query]);
+  }, [query,search]);
   // console.log(orders);
   return (
     <div>

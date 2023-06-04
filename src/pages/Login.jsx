@@ -87,7 +87,7 @@ const Login = () => {
       });
     e.preventDefault();
   };
-console.log(errorList);
+// console.log(errorList);
     return (
       <div>
         <LoadingBar
