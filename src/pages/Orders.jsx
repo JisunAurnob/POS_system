@@ -25,22 +25,21 @@ const Orders = () => {
   const [search, setSearch] = useState();
   const [orderDetails, setOrderDetails] = useState();
   const dispatch = useDispatch();
-  const [query, setQuery] = useState('');
-  useEffect(() => {
-      if (search) {
-        setQuery("?search=" + search);
-      }
-      else {
-        setQuery('');
-      }
-      // console.log(query);
-    }, [search]);
+
   useEffect(() => {
     ref.current.continuousStart();
     // console.log(query);
+    var url = "pos/order-list";
+    if (search) {
+      url = "pos/order-list?search=" + search;
+    }
+    else {
+      url = "pos/order-list";
+    }
     // if(isLoggedIn){
-    axios.get("pos/order-list"+query)
+    axios.get(url)
       .then(resp => {
+        setOrders(null);
         console.log(resp.data);
         ref.current.complete();
         if (resp.data.success == true) {
@@ -68,7 +67,7 @@ const Orders = () => {
         // navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
       });
     // }
-  }, [query,search]);
+  }, [search]);
   // console.log(orders);
   return (
     <div>
@@ -94,7 +93,7 @@ const Orders = () => {
                 </Col>
               </Row>
               <Row>
-                {orders && orders.length > 0 ? (
+                {orders ? (
                   orders.map((order, index) => {
                     return (
                       <div key={index} className={orderDetails && orderDetails.id===order.id ? 'col-11 order_card active' : 'col-11 order_card' } onClick={() => {
@@ -114,7 +113,7 @@ const Orders = () => {
                   })
                 ) : (
                   <div className="col-11 ps-4 mt-4">
-                    {orders && orders.length < 1 && (
+                    {!orders && (
                       <h3 className="text-warning text-center">
                         No Order To Show!
                       </h3>

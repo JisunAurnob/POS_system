@@ -397,3 +397,13 @@ border-color: #16d3e9 !important;
     background-color: #0098b8;
     border-color: #0098b8;
 }
+.swal2-radio label, .swal2-checkbox label{
+    flex: 0 0 46%;
+    width: 46%;
+    font-size: 1.1rem;
+    border: 0.1px solid #91b4bb;
+    margin-bottom: 0.5rem;
+}
+.swal2-radio, .swal2-checkbox{
+    align-items: baseline;
+}

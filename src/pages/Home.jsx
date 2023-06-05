@@ -90,7 +90,7 @@ const Home = () => {
 
   const search = useLocation().search;
   const queryParam = new URLSearchParams(search);
-  
+
 
   useEffect(() => {
     // console.log(UserData);
@@ -98,13 +98,13 @@ const Home = () => {
     if (UserData || queryParam.get('token')) {
       console.log('pos verify');
       var token = queryParam.get('token') !== null ? queryParam.get('token') : (UserData ? UserData.token : '');
-        axios.get("pos/verify-token/" + token)
+      axios.get("pos/verify-token/" + token)
         .then(resp => {
           console.log(resp.data);
           ref.current.complete();
           localStorage.removeItem("posUser");
           dispatch(setUserData(null))
-          if(resp.data.success){
+          if (resp.data.success) {
             // Swal.fire({
             //   position: 'center',
             //   icon: 'success',
@@ -116,28 +116,28 @@ const Home = () => {
             localStorage.setItem("posUser", JSON.stringify(resp.data.data));
             dispatch(setUserData(resp.data.data));
           }
-          else if(resp.data.success==false){
+          else if (resp.data.success == false) {
             ref.current.complete();
-              Swal.fire({
-                position: 'center',
-                icon: 'warning',
-                title: resp.data.message,
-                showConfirmButton: false,
-                timer: 1000
-              })
-              localStorage.removeItem("posUser");
-              dispatch(setUserData(null))
+            Swal.fire({
+              position: 'center',
+              icon: 'warning',
+              title: resp.data.message,
+              showConfirmButton: false,
+              timer: 1000
+            })
+            localStorage.removeItem("posUser");
+            dispatch(setUserData(null))
             navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
           }
-  
+
         }).catch(err => {
           ref.current.complete();
           console.log(err);
           navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
         });
-      
+
     }
-    else{
+    else {
       localStorage.removeItem("posUser");
       dispatch(setUserData(null));
       navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
@@ -156,7 +156,7 @@ const Home = () => {
         }
       });
 
-  }, [insideShiCharge,outsideShiCharge]);
+  }, [insideShiCharge, outsideShiCharge]);
   useEffect(() => {
     if (searchProduct && cateID) {
       setQuery("?product_name=" + searchProduct + "&category_id=" + cateID);
@@ -177,11 +177,14 @@ const Home = () => {
     if (searchProduct && cateID && query) {
       axios.get("pos/products" + query)
         .then(resp => {
-          if(resp.data.success===false && queryParam.get('token') === null){
-            // navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+          if (resp.data.success === false && queryParam.get('token') === null) {
+            if (resp.data.message == "Unauthorized") {
+              localStorage.removeItem("posUser");
+              navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+            }
             setProducts(null);
           }
-          else{
+          else {
             setProducts(resp.data.data);
             // console.log(resp.data.data);
           }
@@ -190,34 +193,45 @@ const Home = () => {
     else if (searchProduct && query) {
       axios.get("pos/products" + query)
         .then(resp => {
-          if(resp.data.success===false && queryParam.get('token') === null){
-            // navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+          if (resp.data.success === false && queryParam.get('token') === null) {
+            if (resp.data.message == "Unauthorized") {
+              localStorage.removeItem("posUser");
+              navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+            }
             setProducts(null);
           }
-          else{
-          setProducts(resp.data.data);
+          else {
+            setProducts(resp.data.data);
           }
         });
     }
     else if (cateID && query) {
       axios.get("pos/products" + query)
         .then(resp => {
-          if(resp.data.success===false && queryParam.get('token') === null){
-            navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+          if (resp.data.success === false && queryParam.get('token') === null) {
+            if (resp.data.message == "Unauthorized") {
+              localStorage.removeItem("posUser");
+              navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+            }
+            setProducts(null);
           }
-          else{
-          setProducts(resp.data.data.data);
+          else {
+            setProducts(resp.data.data.data);
           }
         });
     }
     else {
       axios.get("pos/products")
         .then(resp => {
-          if(resp.data.success===false && queryParam.get('token') === null){
-            navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+          if (resp.data.success === false && queryParam.get('token') === null) {
+            if (resp.data.message == "Unauthorized") {
+              localStorage.removeItem("posUser");
+              navigate({ pathname: '/login', search: '?q=You Need To Login First', replace: true });
+            }
+            setProducts(null);
           }
-          else{
-          setProducts(resp.data.data);
+          else {
+            setProducts(resp.data.data);
           }
         });
     }
@@ -279,36 +293,33 @@ const Home = () => {
   }
   // console.log(selectedCustomerAddresses);
   useEffect(() => {
-    let radioHtml = '<b className="mb-2 mt-2 col-12">Select Address</b> <br>';
+    let radioHtml = '';
     if (selectedCustomerAddresses) {
       try {
         selectedCustomerAddresses.forEach(function (item, key) {
-          radioHtml += `<div className="form-check form-check-inline col-5 pe-0" style="margin:1rem">
-        <input className="form-check-input discount_type" type="radio" name="address_id" id="`+ item.id + `" value="` + item.id + `" required>
-        <label className="form-check-label" for="`+ item.id + `">
-        <address className='row address_div'>
-        <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">`+ item.address + `</p>
-        <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">
-        <i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
+          radioHtml += `<label>
+          <input type="radio" name="address_id" value="` + item.id + `" required `+(selectedCustomerAddressesId===item.id ? 'checked' : '')+`>
+          <span class="swal2-label">
+          `+ item.address + ` ` + item.area + `<br>
+          <i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
         <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
-      </svg></i> `+ item.name + `</p>
-        <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;"><i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-telephone" viewBox="0 0 16 16">
+      </svg></i> `+ item.name + `<br>
+      <i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-telephone" viewBox="0 0 16 16">
         <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
-      </svg></i> `+ item.phone + `</p>
-        <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">`+ item.shipping_state.name + `</p>
-        <p className="col-6" style="margin-bottom: 0; border-bottom: 1px solid #e5e5e5;">Zip: `+ item.zip + `</p>
-        </address>
-        </label>
-        <input type="hidden" id="address_name`+ item.id + `" value="`+ item.name + `" required>
-        <input type="hidden" id="address`+ item.id + `" value="`+ item.address + `" required>
-        <input type="hidden" id="address_phone`+ item.id + `" value="`+ item.phone + `" required>
-        <input type="hidden" id="address_email`+ item.id + `" value="`+ item.email + `" required>
-        <input type="hidden" id="shipping_id`+ item.id + `" value="`+ item.shipping_state.id + `" required>
-        <input type="hidden" id="zip`+ item.id + `" value="`+ item.zip + `" required>
-        <input type="hidden" id="area`+ item.id + `" value="`+ item.area + `" required>
-      </div>`;
+      </svg></i> `+ item.phone + `<br>
+      `+ item.shipping_state.name + ` |
+      Zip: `+ item.zip + `<br>
+          </span>
+          </label>
+        <input type="hidden" id="address_name`+ item.id + `" value="` + item.name + `" required>
+        <input type="hidden" id="address`+ item.id + `" value="` + item.address + `" required>
+        <input type="hidden" id="address_phone`+ item.id + `" value="` + item.phone + `" required>
+        <input type="hidden" id="address_email`+ item.id + `" value="` + item.email + `" required>
+        <input type="hidden" id="shipping_id`+ item.id + `" value="` + item.shipping_id + `" required>
+        <input type="hidden" id="zip`+ item.id + `" value="` + item.zip + `" required>
+        <input type="hidden" id="area`+ item.id + `" value="` + item.area + `" required>`;
         });
-        
+
       } catch (error) {
         Swal.fire({
           customClass: {
@@ -428,6 +439,7 @@ const Home = () => {
   };
 
   const handleSubmit = (event) => {
+    event.preventDefault();
     var obj = {
       name: username,
       email: email,
@@ -452,7 +464,7 @@ const Home = () => {
       .post("pos/add-customer-address/" + selectedCustomer.id, obj)
       .then(function (resp) {
         var data = resp.data;
-        // console.log(data);
+        console.log(data);
         if (data.success == false) {
 
           setError(data.message);
@@ -467,16 +479,17 @@ const Home = () => {
             title: data.message,
             showConfirmButton: false,
           });
-          setUsername('');
-          setPassword('');
-          setEmail('');
-          setContact('');
-          setAddress('');
-          setZip('');
-          setArea('');
-          setAreaId('');
-          setError(null);
-          setCity('');
+          setCustomerAddressId(data.customer_address.id);
+          // setUsername('');
+          // setPassword('');
+          // setEmail('');
+          // setContact('');
+          // setAddress('');
+          // setZip('');
+          // setArea('');
+          // setAreaId('');
+          // setError(null);
+          // setCity('');
           customerAddress(selectedCustomer.id);
           setAddAddressModal(false);
         }
@@ -494,14 +507,20 @@ const Home = () => {
 
   const checkOutSubmit = () => {
     ref.current.continuousStart();
-    if(isEmpty){
-      Swal.fire('Add Products First')
+    if (isEmpty) {
+      Swal.fire('Add Products First');
+      setDisable(false);
+      ref.current.complete();
     }
     else if (!selectedCustomerAddressesId) {
-      Swal.fire('Select Customer Address First')
+      Swal.fire('Select Customer Address First');
+      setDisable(false);
+      ref.current.complete();
     }
     else if (!city || !paymentMethod) {
-      Swal.fire('Select Shipping Zone & Payment Method')
+      Swal.fire('Select Shipping Zone & Payment Method');
+      setDisable(false);
+      ref.current.complete();
     }
     else {
       var customer_city = 0;
@@ -528,7 +547,7 @@ const Home = () => {
         customer_zip: zip,
         shipping_area: area,
       };
-      if(paymentMethod!=='bkash-merchant'){
+      if (paymentMethod !== 'bkash-merchant') {
         setBkashTId(null);
       }
       if (!customer_details.customer_email) {
@@ -578,11 +597,11 @@ const Home = () => {
           .then(resp => {
             console.log(resp.data);
             if (resp.data.success) {
-            ref.current.complete();
+              ref.current.complete();
               emptyCart();
               setTimeout(() => {
                 window.location.reload();
-                }, 1200);
+              }, 1200);
             }
             else {
               Swal.fire({
@@ -625,7 +644,7 @@ const Home = () => {
               });
               emptyCart();
               setTimeout(() => {
-              window.location.reload();
+                window.location.reload();
               }, 1200);
 
             }
@@ -653,13 +672,13 @@ const Home = () => {
 
     }
   };
-
+console.log(city);
   return (
     <div>
       <LoadingBar
-        color='#0098b8' 
+        color='#0098b8'
         ref={ref}
-        />
+      />
       <Layout>
         <Row>
           <Col lg={7} xxl={8} className="ps-0 pe-0">
@@ -800,20 +819,15 @@ const Home = () => {
                         title="Select Address"
                         onClick={() => {
                           var button_text = '';
-                          // if(!selectedCustomerAddresses){
-                          //   button_text = 'Add Address';
-                          // }
-                          // else{
                           button_text = 'Select Address';
-                          // }
                           Swal.fire({
                             title: 'Customer Addresses',
+                            width: 700,
                             html: `<div className="row" style="width: 100%">
-                      <div className="col-12 row">
-                      `+ addressHtml + `
-                      </div>
-                      </div>
-                              `,
+                              <div class="swal2-radio m-0" style="display: flex;flex-wrap: wrap;">
+                              `+ addressHtml + `
+                              </div>
+                            </div>`,
                             confirmButtonColor: '#09b3d4',
                             confirmButtonText: button_text,
                             showDenyButton: true,
@@ -828,17 +842,27 @@ const Home = () => {
                               }
                               else {
                                 setCustomerAddressId(Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value);
-                                setUsername(Swal.getHtmlContainer().querySelector("#address_name"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
-                                setContact(Swal.getHtmlContainer().querySelector("#address_phone"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
-                                setEmail(Swal.getHtmlContainer().querySelector("#address_email"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
-                                setCity(Swal.getHtmlContainer().querySelector("#shipping_id"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value===14 ? 'inside_dhaka' : 'outside_dhaka');
-                                setAddress(Swal.getHtmlContainer().querySelector("#address"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
-                                setZip(Swal.getHtmlContainer().querySelector("#zip"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
-                                setArea(Swal.getHtmlContainer().querySelector("#area"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setUsername(Swal.getHtmlContainer().querySelector("#address_name" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setContact(Swal.getHtmlContainer().querySelector("#address_phone" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setEmail(Swal.getHtmlContainer().querySelector("#address_email" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setCity(Swal.getHtmlContainer().querySelector("#shipping_id" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value === 14 ? 'inside_dhaka' : 'outside_dhaka');
+                                setAddress(Swal.getHtmlContainer().querySelector("#address" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setZip(Swal.getHtmlContainer().querySelector("#zip" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setArea(Swal.getHtmlContainer().querySelector("#area" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
                               }
                               // console.log(Swal.getHtmlContainer().querySelector("#shipping_id"+Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
                             }
                             else if (result.isDenied) {
+                              setCustomerAddressId('');
+                              setUsername('');
+                              setPassword('');
+                              setEmail('');
+                              setContact('');
+                              setAddress('');
+                              setZip('');
+                              setArea('');
+                              setAreaId('');
+                              setError(null);
                               setAddAddressModal(true);
                             }
                           })
@@ -850,144 +874,6 @@ const Home = () => {
                       </i>  */}
                         Select Address
                       </button>
-                      <Modal
-                        show={addAddressModal}
-                        size="md"
-                        aria-labelledby="contained-modal-title-vcenter"
-                        centered
-                      >
-                        <Modal.Header closeButton onClick={() => setAddAddressModal(false)}>
-                          <Modal.Title id="contained-modal-title-vcenter">
-                            Add Customer Address
-                          </Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                          <div className="ps-4 pe-4">
-                            <form onSubmit={(e) => { handleSubmit(e); }}>
-                              <div className="form-group mb-2">
-                                <label htmlFor="name" className="required">
-                                  Full Name:
-                                </label>{" "}
-                                <input
-                                  id="name"
-                                  type="text"
-                                  name="name"
-                                  value={username}
-                                  onChange={(e) => setUsername(e.target.value)}
-                                  placeholder="Customer full name"
-                                  className="form-control square"
-                                />
-                                <span className='text-danger'>{errorList && errorList.name && errorList.name[0]}</span>
-                              </div>{" "}
-                              <div className="form-group mb-2">
-                                <label htmlFor="email">Email:</label>{" "}
-                                <input id="email" type="email" name="email" value={email}
-                                  onChange={(e) => setEmail(e.target.value)} placeholder="your-email@domain.com" className="form-control square" />
-                                {errorList && (<span className='text-danger'>{errorList.email && errorList.email}</span>)}
-                              </div>{" "}
-                              <div className="form-group mb-2">
-                                <label htmlFor="phone" className="required">
-                                  Phone:
-                                </label>{" "}
-                                <input id="phone" type="text" name="phone" value={contact} onChange={(e) => setContact(e.target.value)} className="form-control square" />
-                                {errorList && (<span className='text-danger'>{errorList.phone}</span>)}
-                              </div>{" "}
-                              <div className="form-group mb-2">
-                                <label htmlFor="city" className="required">
-                                  City:
-                                </label>{" "}
-                                <select style={{ height: '47px' }} className="form-control address-control-item address-control-item-required"
-                                  id="city"
-                                  name="city"
-                                  value={city}
-                                  required
-                                  onChange={(e) => { setCity(e.target.value); }}
-                                >
-                                  {/* <option>Your City</option> */}
-                                  <option value={'inside_dhaka'}>Inside Dhaka</option>
-                                  <option value={'outside_dhaka'}>Outside Dhaka</option>
-                                </select>
-                                {errorList && (<span className='text-danger'>{errorList.city}</span>)}
-                              </div>{" "}
-                              <div className="form-group mb-2">
-                                <label htmlFor="area" className="required">
-                                  Area:
-                                </label>{" "}
-                                {city === 'inside_dhaka' && (
-                                  // <div className="form-group">
-                                  // <SelectSearch options={DhakaShippingZoneData} value={area} search={true} name="area" placeholder="Select Area" onChange={(selectedValue,selectedOption) => {setArea(selectedOption.name);console.log(selectedOption);}} />
-                                  // </div>
-                                  shippingZones && (
-                                    <div className="form-group mb-2">
-                                      <select style={{ height: '47px' }} className="form-control address-control-item address-control-item-required"
-                                        name="area"
-                                        required={area === "" ? true : false}
-                                        value={area}
-                                        onChange={(e) => setArea(e.target.value)}
-                                      >
-                                        <option value={null}>Select Area</option>
-                                        {shippingZones &&
-                                          (shippingZones.map((srvzn, index) => {
-                                            return <option key={index} value={srvzn.name}>{srvzn.name}</option>;
-                                          }))}
-                                      </select>
-                                      {errorList && (
-                                        <span className="text-danger">
-                                          {errorList['shipping_details.area'] && errorList['shipping_details.area'][0]}
-                                        </span>
-                                      )}
-                                    </div>
-                                  )
-                                )}
-                                {city === 'outside_dhaka' && (
-                                  shippingZones && (
-                                    <div className="form-group">
-                                      <SelectSearch options={shippingZones} value={area} search={true} name="area" placeholder="Select Area" onChange={(selectedValue) => { setArea(selectedValue); }} />
-                                    </div>
-                                  )
-                                )}
-                                {errorList && (<span className='text-danger'>{errorList.area}</span>)}
-                              </div>{" "}
-                              <div className="form-group mb-2">
-                                <label htmlFor="zip" className="">
-                                  Zip:
-                                </label>{" "}
-                                <input id="zip" type="text" name="zip" value={zip} onChange={(e) => setZip(e.target.value)} placeholder="Enter your city" className="form-control square" />
-                              </div>{" "}
-                              <div className="form-group mb-2">
-                                <label htmlFor="address" className="required">
-                                  Address:
-                                </label>{" "}
-                                <input
-                                  id="address"
-                                  type="text"
-                                  name="address"
-                                  value={address}
-                                  onChange={(e) => setAddress(e.target.value)}
-                                  required="required"
-                                  placeholder="Enter your address"
-                                  className="form-control square"
-                                />
-                                {errorList && (<span className='text-danger'>{errorList.address}</span>)}
-                              </div>{" "}
-                              {/* <div className="form-group mb-2">
-                                <div className="custome-checkbox">
-                                  <input type="checkbox" name="is_default" value={1} id="is_default" onClick={(e) => setDefault(!defaultValue)} className="form-check-input" />{" "}
-                                  <label htmlFor="is_default" className="form-check-label">
-                                    <span>Use this address as default.</span>
-                                  </label>
-                                </div>
-                              </div>{" "} */}
-                              <div className="col-md-12">
-                                <button type="submit" className="btn customer_add_btn">
-                                  Save address
-                                </button>&nbsp;
-                                <button type="reset" className="btn btn-light" onClick={() => setAddAddressModal(false)}>Cancel</button>
-                              </div>
-                            </form>
-                          </div>
-                        </Modal.Body>
-                      </Modal>
                     </div>
                     <div className="col-1">
                       <button data-title="Remove" className="btn" onClick={() => {
@@ -1012,22 +898,93 @@ const Home = () => {
                             return (
                               <p key={key} onClick={() => {
                                 customerAddress(customer.id);
-                                // console.log(selectedCustomerAddresses);
+                                setCustomer(customer);
+                                console.log(customer);
+                                let radioHtml = '';
+                                if (customer && customer.addresses) {
+                                  try {
+                                    customer.addresses.forEach(function (item, key) {
+                                      radioHtml += `<label>
+                                      <input type="radio" name="address_id" value="` + item.id + `" required `+(selectedCustomerAddressesId===item.id && 'checked')+`>
+                                      <span class="swal2-label">
+                                      `+ item.address + ` ` + item.area + `<br>
+                                      <i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-person" viewBox="0 0 16 16">
+                                    <path d="M8 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm2-3a2 2 0 1 1-4 0 2 2 0 0 1 4 0Zm4 8c0 1-1 1-1 1H3s-1 0-1-1 1-4 6-4 6 3 6 4Zm-1-.004c-.001-.246-.154-.986-.832-1.664C11.516 10.68 10.289 10 8 10c-2.29 0-3.516.68-4.168 1.332-.678.678-.83 1.418-.832 1.664h10Z"/>
+                                  </svg></i> `+ item.name + `<br>
+                                  <i style="color: rgb(9, 179, 212)"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" className="bi bi-telephone" viewBox="0 0 16 16">
+                                    <path d="M3.654 1.328a.678.678 0 0 0-1.015-.063L1.605 2.3c-.483.484-.661 1.169-.45 1.77a17.568 17.568 0 0 0 4.168 6.608 17.569 17.569 0 0 0 6.608 4.168c.601.211 1.286.033 1.77-.45l1.034-1.034a.678.678 0 0 0-.063-1.015l-2.307-1.794a.678.678 0 0 0-.58-.122l-2.19.547a1.745 1.745 0 0 1-1.657-.459L5.482 8.062a1.745 1.745 0 0 1-.46-1.657l.548-2.19a.678.678 0 0 0-.122-.58L3.654 1.328zM1.884.511a1.745 1.745 0 0 1 2.612.163L6.29 2.98c.329.423.445.974.315 1.494l-.547 2.19a.678.678 0 0 0 .178.643l2.457 2.457a.678.678 0 0 0 .644.178l2.189-.547a1.745 1.745 0 0 1 1.494.315l2.306 1.794c.829.645.905 1.87.163 2.611l-1.034 1.034c-.74.74-1.846 1.065-2.877.702a18.634 18.634 0 0 1-7.01-4.42 18.634 18.634 0 0 1-4.42-7.009c-.362-1.03-.037-2.137.703-2.877L1.885.511z"/>
+                                  </svg></i> `+ item.phone + `<br>
+                                  `+ item.shipping_state.name + ` |
+                                  Zip: `+ item.zip + `<br>
+                                      </span>
+                                      </label>
+                                    <input type="hidden" id="address_name`+ item.id + `" value="` + item.name + `" required>
+                                    <input type="hidden" id="address`+ item.id + `" value="` + item.address + `" required>
+                                    <input type="hidden" id="address_phone`+ item.id + `" value="` + item.phone + `" required>
+                                    <input type="hidden" id="address_email`+ item.id + `" value="` + item.email + `" required>
+                                    <input type="hidden" id="shipping_id`+ item.id + `" value="` + item.shipping_id + `" required>
+                                    <input type="hidden" id="zip`+ item.id + `" value="` + item.zip + `" required>
+                                    <input type="hidden" id="area`+ item.id + `" value="` + item.area + `" required>
+                                    `;
+                                    });
 
+                                  } catch (error) {
+                                    Swal.fire({
+                                      customClass: {
+                                        icon: 'mt-4'
+                                      },
+                                      position: 'center',
+                                      icon: 'success',
+                                      title: 'Ops! Something Went Wrong',
+                                      showConfirmButton: true,
+                                    });
+                                    console.log(error);
+                                  }
+                                }
+                                else {
+                                  radioHtml = `<h5 className="text-warning">No Address Found</h5>`;
+                                }
                                 Swal.fire({
-                                  title: 'Customer Details',
+                                  title: 'Customer Addresses',
+                                  width: 700,
                                   html: `<div className="row" style="width: 100%">
-                          <h6 className="col-7 mb-0 text-start">Name: `+ customer.customer_name + `</h6>
-                          <p className="col-5 mb-0 text-end">`+ customer.customer_contact + `</p>
-                          <p className="col-8 mb-0 text-start">Email: `+ customer.customer_email + `</p>
-                          <p className="col-4 mb-0 text-end">Gender: `+ customer.customer_gender + `</p>
-                          </div>
-                                  `,
+                            <div class="swal2-radio m-0" style="display: flex;flex-wrap: wrap;">
+                            `+ radioHtml + `
+                            </div>
+                            </div>
+                                    `,
                                   confirmButtonColor: '#09b3d4',
                                   confirmButtonText: "Select Customer",
+                                  showDenyButton: true,
+                                  denyButtonText: `Add Address`,
+                                  denyButtonColor: '#890bc2',
                                 }).then((result) => {
                                   if (result.isConfirmed) {
                                     setCustomer(customer);
+                                    setCustomerAddressId(Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value);
+                                setUsername(Swal.getHtmlContainer().querySelector("#address_name" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setContact(Swal.getHtmlContainer().querySelector("#address_phone" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setEmail(Swal.getHtmlContainer().querySelector("#address_email" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setCity(Swal.getHtmlContainer().querySelector("#shipping_id" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value === 15 ? 'outside_dhaka' : 'inside_dhaka');
+                                setAddress(Swal.getHtmlContainer().querySelector("#address" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setZip(Swal.getHtmlContainer().querySelector("#zip" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                setArea(Swal.getHtmlContainer().querySelector("#area" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
+                                  }
+                                  else if (result.isDenied) {
+                                    setCustomerAddressId('');
+                                    setUsername('');
+                                    setPassword('');
+                                    setEmail('');
+                                    setContact('');
+                                    setAddress('');
+                                    setZip('');
+                                    setArea('');
+                                    setAreaId('');
+                                    setError(null);
+                                    setAddAddressModal(true);
+                                  }
+                                  else{
+                                    setCustomer(null);
                                   }
                                 })
                               }} className="mb-1">{customer.customer_name} ({customer.customer_contact})</p>
@@ -1039,6 +996,17 @@ const Home = () => {
                     </div>
                     <div className="col-4">
                       <button className="col-7 col-xl-5 btn customer_add_btn" title="Add Customer" onClick={() => {
+                        setCustomerAddressId('');
+                        setUsername('');
+                        setPassword('');
+                        setEmail('');
+                        setContact('');
+                        setAddress('');
+                        setZip('');
+                        setArea('');
+                        setAreaId('');
+                        setError(null);
+                        setCustomer(null);
                         setAddCustomerModal(!addCustomerModal);
                       }}>
                         <i>
@@ -1103,7 +1071,7 @@ const Home = () => {
                                 onChange={(e) => setPassword(e.target.value)}
                                 placeholder="Password For The Customer"
                                 className="form-control square"
-                                style={{backgroundColor:'#e1e1e1'}}
+                                style={{ backgroundColor: '#e1e1e1' }}
                                 readOnly
                               />
                               <span className='text-danger'>{errorList && errorList.customer_password && errorList.customer_password[0]}</span>
@@ -1372,120 +1340,6 @@ const Home = () => {
                   <Col md={4}>
                     <p className="text-end">{Number(shipingCost)}৳</p>
                   </Col>
-                  {/* <Col lg={6} xl={4}>
-                    <button className="btn discount_card" onClick={() => {
-                      Swal.fire({
-                        title: 'Enter Coupon Code',
-                        input: 'text',
-                        inputPlaceholder: 'Your Coupon Code',
-                        confirmButtonColor: '#09b3d4',
-                        confirmButtonText: 'Apply',
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          console.log('coupon applied');
-                          axios.post("pos/coupon-apply/",
-                            { coupon: result.value, sub_total: subtotal })
-                            .then(function (resp) {
-                              console.log(resp.data);
-                              if (resp.data.success) {
-                                successNotify('Coupon Applied Successfully');
-                                setCouponAmount(resp.data.data.coupon_discount);
-                                setCouponId(resp.data.data.coupon_id);
-                              } else {
-                                errorNotify(resp.data.message);
-                              }
-                            })
-                            .catch((err) => {
-                              console.log(err);
-                            });
-                        }
-                      })
-                    }}>
-                      <img src={tag_icon} alt="coupon" width='30' /><br />
-                      Coupon
-                    </button>
-                  </Col>
-                  <Col lg={6} xl={4}>
-                    <button className="btn discount_card" onClick={() => {
-                      Swal.fire({
-                        title: 'Apply Discount',
-                        html: `<b className="mb-2">Select discount type</b> <br>
-                                  <div className="form-check form-check-inline">
-                                    <input className="form-check-input discount_type" type="radio" name="type" id="fixed" value="fixed">
-                                    <label className="form-check-label" for="fixed">Fixed</label>
-                                  </div>
-                                  <div className="form-check form-check-inline">
-                                    <input className="form-check-input discount_type" type="radio" name="type" id="percentage" value="percentage">
-                                    <label className="form-check-label" for="percentage">Percentage</label>
-                                  </div>
-                                `,
-                        input: 'number',
-                        inputPlaceholder: 'Enter Discount Amount',
-                        inputAttributes: {
-                          min: '0',
-                          step: 0.1,
-                        },
-                        confirmButtonColor: '#09b3d4',
-                        confirmButtonText: 'Apply',
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          axios.post("pos/discount/" + Swal.getHtmlContainer().querySelector("input[name='type']:checked").value,
-                            { discount_amount: result.value, subtotal: subtotal })
-                            .then(function (resp) {
-                              if (resp.data.success) {
-                                // console.log(resp.data.data.discounted_amount);
-                                successNotify('Discount Applied Successfully');
-                                setDiscount(resp.data.data.discounted_amount);
-                              }
-                              else {
-                                errorNotify(resp.data.message);
-                              }
-                            })
-                            .catch((err) => {
-                              console.log(err);
-                            });
-                        }
-                      })
-                    }}>
-                      <img src={discount_icon} alt="discount" width='30' /><br />
-                      Discount
-                    </button>
-                  </Col>
-                  <Col lg={6} xl={4}>
-                    <button className="btn discount_card" onClick={() => {
-                      Swal.fire({
-                        title: 'Enter Order Comment',
-                        input: 'text',
-                        inputPlaceholder: 'Order Comment',
-                        confirmButtonColor: '#09b3d4',
-                        confirmButtonText: 'Add',
-                        showCancelButton: true,
-                      }).then((result) => {
-                        if (result.isConfirmed) {
-                          // axios.post("pos/coupon-apply/",
-                          //   { coupon: result.value, sub_total: subtotal })
-                          //   .then(function (resp) {
-                          //     if (resp.data.success) {
-                          //       // console.log(resp.data);
-                          //       successNotify('Coupon Applied Successfully');
-                          //       setCouponAmount(resp.data.data.coupon_discount);
-                          //       setCouponId(resp.data.data.coupon_id);
-                          //     } else {
-                          //       errorNotify(resp.data.message);
-                          //     }
-                          //   })
-                          //   .catch((err) => {
-                          //     console.log(err);
-                          //   });
-                          infoNotify('This feature is upcoming');
-                        }
-                      })
-                    }}>
-                      <svg viewBox="64 64 896 896" focusable="false" data-icon="pause" width="1.5em" height="1.9em" fill="currentColor" aria-hidden="true"><path d="M304 176h80v672h-80zm408 0h-64c-4.4 0-8 3.6-8 8v656c0 4.4 3.6 8 8 8h64c4.4 0 8-3.6 8-8V184c0-4.4-3.6-8-8-8z"></path></svg>
-                      <br />
-                      Hold Order
-                    </button>
-                  </Col> */}
                   <Col md={12}>
                     <select className="form-control ms-1 mt-3" name="shipping_city" title="Select Shipping Zone" required
                       value={city}
@@ -1506,19 +1360,19 @@ const Home = () => {
                       <option value="bkash-merchant">bKash Merchant</option>
                     </select>
                   </Col>
-                  {paymentMethod && paymentMethod==='bkash-merchant' && (
+                  {paymentMethod && paymentMethod === 'bkash-merchant' && (
                     <Col md={12}>
-                    <div className="ms-1">
-                      <label className="pt-2 mb-1">bKash Trans. Id</label>
-                      <input type="text" className="form-control" placeholder="If customer already paid please insert the transaction id" name="bKash_tran_id" value={bkashTId}
-                        onChange={(e) => { setBkashTId(e.target.value); }} />
-                    </div>
-                  </Col>
+                      <div className="ms-1">
+                        <label className="pt-2 mb-1">bKash Trans. Id</label>
+                        <input type="text" className="form-control" placeholder="If customer already paid please insert the transaction id" name="bKash_tran_id" value={bkashTId}
+                          onChange={(e) => { setBkashTId(e.target.value); }} />
+                      </div>
+                    </Col>
                   )}
                   <Col md={12}>
                     <div className="ms-1">
                       <label className="pt-2 mb-1">Order Notes </label>
-                      <textarea className="form-control" placeholder="Oder Notes" name="order_note" value={orderNote}
+                      <textarea className="form-control" placeholder="Order Notes" name="order_note" value={orderNote}
                         onChange={(e) => { setOrderNote(e.target.value); }} />
                     </div>
                   </Col>
@@ -1544,6 +1398,145 @@ const Home = () => {
           </Col>
         </Row>
       </Layout>
+
+      <Modal
+        show={addAddressModal}
+        size="md"
+        aria-labelledby="contained-modal-title-vcenter"
+        centered
+      >
+        <Modal.Header closeButton onClick={() => setAddAddressModal(false)}>
+          <Modal.Title id="contained-modal-title-vcenter">
+            Add Customer Address
+          </Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <div className="ps-4 pe-4">
+            <form onSubmit={(e) => { handleSubmit(e); }}>
+              <div className="form-group mb-2">
+                <label htmlFor="name" className="required">
+                  Receiver Name:
+                </label>{" "}
+                <input
+                  id="name"
+                  type="text"
+                  name="name"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter Receiver Name"
+                  className="form-control square"
+                />
+                <span className='text-danger'>{errorList && errorList.name && errorList.name[0]}</span>
+              </div>{" "}
+              <div className="form-group mb-2">
+                <label htmlFor="email">Email:</label>{" "}
+                <input id="email" type="email" name="email" value={email}
+                  onChange={(e) => setEmail(e.target.value)} placeholder="your-email@domain.com" className="form-control square" />
+                {errorList && (<span className='text-danger'>{errorList.email && errorList.email}</span>)}
+              </div>{" "}
+              <div className="form-group mb-2">
+                <label htmlFor="phone" className="required">
+                  Phone:
+                </label>{" "}
+                <input id="phone" type="text" name="phone" value={contact} onChange={(e) => setContact(e.target.value)} className="form-control square" />
+                {errorList && (<span className='text-danger'>{errorList.phone}</span>)}
+              </div>{" "}
+              <div className="form-group mb-2">
+                <label htmlFor="city" className="required">
+                  City:
+                </label>{" "}
+                <select style={{ height: '47px' }} className="form-control address-control-item address-control-item-required"
+                  id="city"
+                  name="city"
+                  value={city}
+                  required
+                  onChange={(e) => { setCity(e.target.value); }}
+                >
+                  {/* <option>Your City</option> */}
+                  <option value={'inside_dhaka'}>Inside Dhaka</option>
+                  <option value={'outside_dhaka'}>Outside Dhaka</option>
+                </select>
+                {errorList && (<span className='text-danger'>{errorList.city}</span>)}
+              </div>{" "}
+              <div className="form-group mb-2">
+                <label htmlFor="area" className="required">
+                  Area:
+                </label>{" "}
+                {city === 'inside_dhaka' && (
+                  // <div className="form-group">
+                  // <SelectSearch options={DhakaShippingZoneData} value={area} search={true} name="area" placeholder="Select Area" onChange={(selectedValue,selectedOption) => {setArea(selectedOption.name);console.log(selectedOption);}} />
+                  // </div>
+                  shippingZones && (
+                    <div className="form-group mb-2">
+                      <select style={{ height: '47px' }} className="form-control address-control-item address-control-item-required"
+                        name="area"
+                        required={area === "" ? true : false}
+                        value={area}
+                        onChange={(e) => setArea(e.target.value)}
+                      >
+                        <option value={null}>Select Area</option>
+                        {shippingZones &&
+                          (shippingZones.map((srvzn, index) => {
+                            return <option key={index} value={srvzn.name}>{srvzn.name}</option>;
+                          }))}
+                      </select>
+                      {errorList && (
+                        <span className="text-danger">
+                          {errorList['shipping_details.area'] && errorList['shipping_details.area'][0]}
+                        </span>
+                      )}
+                    </div>
+                  )
+                )}
+                {city === 'outside_dhaka' && (
+                  shippingZones && (
+                    <div className="form-group">
+                      <SelectSearch options={shippingZones} value={area} search={true} name="area" placeholder="Select Area" onChange={(selectedValue) => { setArea(selectedValue); }} />
+                    </div>
+                  )
+                )}
+                {errorList && (<span className='text-danger'>{errorList.area}</span>)}
+              </div>{" "}
+              <div className="form-group mb-2">
+                <label htmlFor="zip" className="">
+                  Zip:
+                </label>{" "}
+                <input id="zip" type="text" name="zip" value={zip} onChange={(e) => setZip(e.target.value)} placeholder="Enter your city" className="form-control square" />
+              </div>{" "}
+              <div className="form-group mb-2">
+                <label htmlFor="address" className="required">
+                  Address:
+                </label>{" "}
+                <input
+                  id="address"
+                  type="text"
+                  name="address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  required="required"
+                  placeholder="Enter your address"
+                  className="form-control square"
+                />
+                {errorList && (<span className='text-danger'>{errorList.address}</span>)}
+              </div>{" "}
+              {/* <div className="form-group mb-2">
+                                <div className="custome-checkbox">
+                                  <input type="checkbox" name="is_default" value={1} id="is_default" onClick={(e) => setDefault(!defaultValue)} className="form-check-input" />{" "}
+                                  <label htmlFor="is_default" className="form-check-label">
+                                    <span>Use this address as default.</span>
+                                  </label>
+                                </div>
+                              </div>{" "} */}
+              <div className="col-md-12">
+                <button type="submit" className="btn customer_add_btn">
+                  Save address
+                </button>&nbsp;
+                <button type="reset" className="btn btn-light" onClick={() => setAddAddressModal(false)}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 };
