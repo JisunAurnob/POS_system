@@ -96,11 +96,11 @@ const Home = () => {
     // console.log(UserData);
     ref.current.continuousStart();
     if (UserData || queryParam.get('token')) {
-      console.log('pos verify');
+      // console.log('pos verify');
       var token = queryParam.get('token') !== null ? queryParam.get('token') : (UserData ? UserData.token : '');
       axios.get("pos/verify-token/" + token)
         .then(resp => {
-          console.log(resp.data);
+          // console.log(resp.data);
           ref.current.complete();
           localStorage.removeItem("posUser");
           dispatch(setUserData(null))
@@ -216,7 +216,7 @@ const Home = () => {
             setProducts(null);
           }
           else {
-            setProducts(resp.data.data.data);
+            setProducts(resp.data.data);
           }
         });
     }
@@ -672,7 +672,7 @@ const Home = () => {
 
     }
   };
-console.log(city);
+// console.log(city);
   return (
     <div>
       <LoadingBar
@@ -855,7 +855,6 @@ console.log(city);
                             else if (result.isDenied) {
                               setCustomerAddressId('');
                               setUsername('');
-                              setPassword('');
                               setEmail('');
                               setContact('');
                               setAddress('');
@@ -965,7 +964,7 @@ console.log(city);
                                 setUsername(Swal.getHtmlContainer().querySelector("#address_name" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
                                 setContact(Swal.getHtmlContainer().querySelector("#address_phone" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
                                 setEmail(Swal.getHtmlContainer().querySelector("#address_email" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
-                                setCity(Swal.getHtmlContainer().querySelector("#shipping_id" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value === 15 ? 'outside_dhaka' : 'inside_dhaka');
+                                setCity(Swal.getHtmlContainer().querySelector("#shipping_id" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value === 14 ? 'inside_dhaka' : 'outside_dhaka');
                                 setAddress(Swal.getHtmlContainer().querySelector("#address" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
                                 setZip(Swal.getHtmlContainer().querySelector("#zip" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
                                 setArea(Swal.getHtmlContainer().querySelector("#area" + Swal.getHtmlContainer().querySelector("input[name='address_id']:checked").value).value);
@@ -973,7 +972,6 @@ console.log(city);
                                   else if (result.isDenied) {
                                     setCustomerAddressId('');
                                     setUsername('');
-                                    setPassword('');
                                     setEmail('');
                                     setContact('');
                                     setAddress('');
@@ -998,7 +996,6 @@ console.log(city);
                       <button className="col-7 col-xl-5 btn customer_add_btn" title="Add Customer" onClick={() => {
                         setCustomerAddressId('');
                         setUsername('');
-                        setPassword('');
                         setEmail('');
                         setContact('');
                         setAddress('');
