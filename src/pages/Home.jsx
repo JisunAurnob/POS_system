@@ -80,7 +80,7 @@ const Home = () => {
   const [addCustomerModal, setAddCustomerModal] = useState();
   const [insideShiCharge, setInsideShiCharge] = useState("");
   const [outsideShiCharge, setOutsideShiCharge] = useState("");
-  const [city, setCity] = useState("inside_dhaka");
+  const [city, setCity] = useState("");
   const [shipingCost, setShipingCost] = useState("0.00");
   const [bkashTId, setBkashTId] = useState();
   let [orderNote, setOrderNote] = useState("");
@@ -248,10 +248,11 @@ const Home = () => {
   }, [categories]);
   // console.log(products);
   useEffect(() => {
-    if (city === 'inside_dhaka') {
+    setShipingCost(insideShiCharge);
+    if (city === 'inside_dhaka' || city === '14') {
       setShipingCost(insideShiCharge);
     }
-    else if (city === 'outside_dhaka') {
+    else if (city === 'outside_dhaka' || city === '15') {
       setShipingCost(outsideShiCharge);
     }
     // console.log(shipingCost);
