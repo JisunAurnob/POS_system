@@ -83,6 +83,7 @@ const Home = () => {
   const [city, setCity] = useState("");
   const [shipingCost, setShipingCost] = useState("0.00");
   const [bkashTId, setBkashTId] = useState();
+  const [saveAddressDisable, setSaveAddressDisable] = useState(false);
   let [orderNote, setOrderNote] = useState("");
   let [paymentMethod, setPaymentMethod] = useState("");
   const [isDisabled, setDisable] = useState(false);
@@ -343,6 +344,7 @@ const Home = () => {
   // console.log(city);
   // console.log(selectedCustomerAddresses);
   const [errorList, setError] = useState();
+  const [orderError, setOrderError] = useState();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState('customer1234');
   const [email, setEmail] = useState("");
@@ -359,7 +361,7 @@ const Home = () => {
   });
   useEffect(() => {
     // console.log(city);
-    if (city === 'inside_dhaka') {
+    if (city !== 'outside_dhaka') {
       axios.get("ec/area-by-district/dhaka")
         .then(resp => {
           // console.log(resp.data.data);
@@ -440,6 +442,7 @@ const Home = () => {
   };
 
   const handleSubmit = (event) => {
+    setSaveAddressDisable(true);
     event.preventDefault();
     var obj = {
       name: username,
@@ -464,6 +467,7 @@ const Home = () => {
     axios
       .post("pos/add-customer-address/" + selectedCustomer.id, obj)
       .then(function (resp) {
+        setSaveAddressDisable(false);
         var data = resp.data;
         console.log(data);
         if (data.success == false) {
@@ -496,6 +500,7 @@ const Home = () => {
         }
       })
       .catch((err) => {
+        setSaveAddressDisable(false);
         setAddressHtml();
         setAddAddressModal(false);
         console.log(err);
@@ -520,6 +525,11 @@ const Home = () => {
     }
     else if (!city || !paymentMethod) {
       Swal.fire('Select Shipping Zone & Payment Method');
+      setDisable(false);
+      ref.current.complete();
+    }
+    else if (paymentMethod==='bkash-merchant' && !bkashTId) {
+      Swal.fire('Please fill up the bKash Transaction ID');
       setDisable(false);
       ref.current.complete();
     }
@@ -588,7 +598,7 @@ const Home = () => {
         shipping_cost: shipingCost,
         vat: tax,
         coupon_id: couponId,
-        bKash_tran_id: bkashTId,
+        transaction_id: bkashTId,
         order_from: 'pos'
       };
       // console.log(order);
@@ -605,14 +615,15 @@ const Home = () => {
               }, 1200);
             }
             else {
-              Swal.fire({
-                position: 'center',
-                icon: 'warning',
-                title: resp.data.message ?? 'Something went wrong please try again later',
-                showConfirmButton: true
-              });
+              // Swal.fire({
+              //   position: 'center',
+              //   icon: 'warning',
+              //   title: 'Please check your inputs where the error messages are showing',
+              //   showConfirmButton: true
+              // });
               ref.current.complete();
               setError(resp.data.message);
+              setDisable(false);
             }
             // window.location.replace(resp.gatewayPageUrl);
           })
@@ -621,10 +632,11 @@ const Home = () => {
             Swal.fire({
               position: 'center',
               icon: 'warning',
-              title: 'Something went wrong please try again later',
+              title: 'Something went wrong please check all your data',
               showConfirmButton: true
             });
             console.log(err);
+            setDisable(false);
           });
 
       }
@@ -653,11 +665,12 @@ const Home = () => {
               Swal.fire({
                 position: 'center',
                 icon: 'warning',
-                title: resp.data.message ?? 'Something went wrong please try again later',
+                title: 'Please check your inputs where the error messages are showing',
                 showConfirmButton: true
               });
               ref.current.complete();
               setError(resp.data.message);
+              setDisable(false);
             }
 
           })
@@ -665,7 +678,13 @@ const Home = () => {
             console.log(err);
             ref.current.complete();
             if (err) {
-              setError("There is something wrong in the order!!!");
+              Swal.fire({
+                position: 'center',
+                icon: 'warning',
+                title: 'Something went wrong please check all your data',
+                showConfirmButton: true
+              });
+              setDisable(false);
             }
           });
       }
@@ -1085,7 +1104,7 @@ const Home = () => {
                                 required
                                 onChange={(e) => { setCity(e.target.value); }}
                               >
-                                {/* <option>Your City</option> */}
+                                <option>Select City</option>
                                 <option value={'inside_dhaka'}>Inside Dhaka</option>
                                 <option value={'outside_dhaka'}>Outside Dhaka</option>
                               </select>
@@ -1095,11 +1114,11 @@ const Home = () => {
                               <label htmlFor="area" className="required">
                                 Area:
                               </label>{" "}
-                              {city === 'inside_dhaka' && (
+                              {city !== 'outside_dhaka' && (
                                 // <div className="form-group">
                                 // <SelectSearch options={DhakaShippingZoneData} value={area} search={true} name="area" placeholder="Select Area" onChange={(selectedValue,selectedOption) => {setArea(selectedOption.name);console.log(selectedOption);}} />
                                 // </div>
-                                shippingZones && (
+                                // shippingZones && (
                                   <div className="form-group mb-2" id="area">
                                     <select style={{ height: '47px' }} className="form-control address-control-item address-control-item-required"
                                       name="area"
@@ -1119,7 +1138,7 @@ const Home = () => {
                                       </span>
                                     )}
                                   </div>
-                                )
+                                // )
                               )}
                               {city === 'outside_dhaka' && (
                                 shippingZones && (
@@ -1134,7 +1153,7 @@ const Home = () => {
                               <label htmlFor="zip" className="">
                                 Zip:
                               </label>{" "}
-                              <input id="zip" type="text" name="zip" value={zip} onChange={(e) => setZip(e.target.value)} placeholder="Enter your city" className="form-control square" />
+                              <input id="zip" type="text" name="zip" value={zip} onChange={(e) => setZip(e.target.value)} placeholder="Enter your zip" className="form-control square" />
                               <span className='text-danger'>{errorList && errorList.zip && errorList.zip[0]}</span>
                             </div>{" "}
                             <div className="form-group mb-2">
@@ -1361,9 +1380,10 @@ const Home = () => {
                   {paymentMethod && paymentMethod === 'bkash-merchant' && (
                     <Col md={12}>
                       <div className="ms-1">
-                        <label className="pt-2 mb-1">bKash Trans. Id</label>
-                        <input type="text" className="form-control" placeholder="If customer already paid please insert the transaction id" name="bKash_tran_id" value={bkashTId}
+                        <label className="pt-2 mb-1">bKash Trans. ID <small style={{fontSize:'0.7rem'}}>(Use , for multiple Trans. ID. Ex: 120,420)</small></label>
+                        <input type="text" className="form-control" placeholder="Please insert the bKash Transaction ID" name="bKash_tran_id" value={bkashTId} required={true}
                           onChange={(e) => { setBkashTId(e.target.value); }} />
+                        {errorList && (<span className='text-danger'>{errorList.transaction_id}</span>)}
                       </div>
                     </Col>
                   )}
@@ -1450,7 +1470,7 @@ const Home = () => {
                   required
                   onChange={(e) => { setCity(e.target.value); }}
                 >
-                  {/* <option>Your City</option> */}
+                  <option>Your City</option>
                   <option value={'inside_dhaka'}>Inside Dhaka</option>
                   <option value={'outside_dhaka'}>Outside Dhaka</option>
                 </select>
@@ -1460,7 +1480,7 @@ const Home = () => {
                 <label htmlFor="area" className="required">
                   Area:
                 </label>{" "}
-                {city === 'inside_dhaka' && (
+                {city !== 'outside_dhaka' && (
                   // <div className="form-group">
                   // <SelectSearch options={DhakaShippingZoneData} value={area} search={true} name="area" placeholder="Select Area" onChange={(selectedValue,selectedOption) => {setArea(selectedOption.name);console.log(selectedOption);}} />
                   // </div>
@@ -1499,7 +1519,7 @@ const Home = () => {
                 <label htmlFor="zip" className="">
                   Zip:
                 </label>{" "}
-                <input id="zip" type="text" name="zip" value={zip} onChange={(e) => setZip(e.target.value)} placeholder="Enter your city" className="form-control square" />
+                <input id="zip" type="text" name="zip" value={zip} onChange={(e) => setZip(e.target.value)} placeholder="Enter your zip" className="form-control square" />
               </div>{" "}
               <div className="form-group mb-2">
                 <label htmlFor="address" className="required">

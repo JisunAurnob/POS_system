@@ -403,6 +403,13 @@ border-color: #16d3e9 !important;
     font-size: 1.1rem;
     border: 0.1px solid #91b4bb;
     margin-bottom: 0.5rem;
+    padding: 0.1rem;
+}
+.swal2-radio label:hover{
+    -webkit-transition: all .3s;
+    transition: all .3s;
+    -webkit-box-shadow: 0 1px 2px -2px #00000029,0 3px 6px #0000001f,0 5px 12px 4px #00000017;
+    box-shadow: 0 1px 2px -2px #00000029,0 3px 6px #0000001f,0 5px 12px 4px #00000017;
 }
 .swal2-radio, .swal2-checkbox{
     align-items: baseline;
